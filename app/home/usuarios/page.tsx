@@ -64,7 +64,7 @@ export default function UsuariosPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-col gap-6 p-6">
+    <div className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">
           ABMC Usuarios
