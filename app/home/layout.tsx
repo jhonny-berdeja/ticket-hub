@@ -4,6 +4,9 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CreateTicketForm from "@/components/CreateTicketForm";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+
+const ADMIN_ROLE = "ADMIN";
 
 /**
  * Shared chrome for every page under /home: the header (Crear ticket,
@@ -14,6 +17,11 @@ import CreateTicketForm from "@/components/CreateTicketForm";
 export default function HomeLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { status: authStatus, user } = useCurrentUser();
+  const isAdmin =
+    authStatus === "authenticated" &&
+    user !== null &&
+    user.roles.includes(ADMIN_ROLE);
 
   // No error handling on the fetch: even if it fails, the cookie can't
   // be cleared client-side (httpOnly), so redirecting to /login
@@ -36,12 +44,14 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
             Crear ticket
           </button>
 
-          <Link
-            href="/home/usuarios"
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-          >
-            ABMC Usuarios
-          </Link>
+          {isAdmin && (
+            <Link
+              href="/home/usuarios"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+            >
+              ABMC Usuarios
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-3">

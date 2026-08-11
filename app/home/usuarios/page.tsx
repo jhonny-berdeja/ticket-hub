@@ -1,12 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import CreateUserForm from "@/components/CreateUserForm";
 import EditUserForm, { type EditableUser } from "@/components/EditUserForm";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const LOAD_ERROR_MESSAGE = "No se pudo cargar la lista de usuarios.";
+const ADMIN_ROLE = "ADMIN";
+const NOT_ADMIN_REDIRECT_PATH = "/home";
 
 export default function UsuariosPage() {
+  const router = useRouter();
+  const { status: authStatus, user } = useCurrentUser();
+  const isAdmin =
+    authStatus === "authenticated" &&
+    user !== null &&
+    user.roles.includes(ADMIN_ROLE);
+
   const [users, setUsers] = useState<EditableUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +31,19 @@ export default function UsuariosPage() {
   // setState calls themselves are after an await).
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Defense in depth against direct URL navigation: the ABMC Usuarios
+  // link is already hidden for non-admins in the layout, but this page
+  // must not render its content for anyone who types the URL directly.
+  // Nothing renders below (see the early return) until this resolves.
   useEffect(() => {
+    if (authStatus !== "loading" && !isAdmin) {
+      router.replace(NOT_ADMIN_REDIRECT_PATH);
+    }
+  }, [authStatus, isAdmin, router]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+
     let cancelled = false;
 
     fetch("/api/users")
@@ -47,7 +70,11 @@ export default function UsuariosPage() {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [isAdmin, refreshKey]);
+
+  if (!isAdmin) {
+    return null;
+  }
 
   function handleCreated() {
     setIsCreateOpen(false);
