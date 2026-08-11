@@ -1,15 +1,40 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { SubmitEvent } from "react";
+import { useState, type ChangeEvent, type SubmitEvent } from "react";
+
+const GENERIC_ERROR_MESSAGE = "Invalid credentials";
 
 export default function Login() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    // No real authentication yet: any submission, even empty, succeeds.
-    router.push("/home");
+    setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        setError(GENERIC_ERROR_MESSAGE);
+        return;
+      }
+
+      router.push("/home");
+    } catch {
+      setError(GENERIC_ERROR_MESSAGE);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -31,6 +56,11 @@ export default function Login() {
               id="email"
               type="email"
               placeholder="you@example.com"
+              value={email}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                setEmail(event.target.value)
+              }
+              required
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
             />
           </div>
@@ -43,6 +73,11 @@ export default function Login() {
               id="password"
               type="password"
               placeholder="••••••••"
+              value={password}
+              onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                setPassword(event.target.value)
+              }
+              required
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
             />
           </div>
@@ -57,11 +92,18 @@ export default function Login() {
             </a>
           </div>
 
+          {error && (
+            <p role="alert" className="text-sm text-red-600">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
-            className="mt-2 rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+            disabled={isSubmitting}
+            className="mt-2 rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Sign in
+            {isSubmitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
