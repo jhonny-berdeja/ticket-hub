@@ -1,13 +1,91 @@
-import type { SubmitEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+
+interface Approver {
+  id: number;
+  name: string;
+  lastname: string;
+  email: string;
+}
+
+const FIXED_DEPARTMENT = "Datacenter";
+const NO_ASSIGNEE_MESSAGE = "Seleccioná a quién asignar el ticket.";
+const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 
 interface CreateTicketFormProps {
   onClose: () => void;
+  onCreated: () => void;
 }
 
-export default function CreateTicketForm({ onClose }: CreateTicketFormProps) {
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+export default function CreateTicketForm({
+  onClose,
+  onCreated,
+}: CreateTicketFormProps) {
+  const [approvers, setApprovers] = useState<Approver[]>([]);
+  const [assignee, setAssignee] = useState<number | "">("");
+  const [subject, setSubject] = useState("");
+  const [description, setDescription] = useState("");
+  const [codeAnsible, setCodeAnsible] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/users/approvers")
+      .then((response) => {
+        if (cancelled || !response.ok) {
+          return;
+        }
+        return response.json().then((body: { data: Approver[] }) => {
+          if (!cancelled) {
+            setApprovers(body.data);
+          }
+        });
+      })
+      .catch(() => {
+        // Leaves approvers empty - the select just shows no options, the
+        // form's own "seleccioná a quién asignar" validation still fires.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onClose();
+
+    if (assignee === "") {
+      setError(NO_ASSIGNEE_MESSAGE);
+      return;
+    }
+
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assignee,
+          department: FIXED_DEPARTMENT,
+          subject,
+          description,
+          codeAnsible: codeAnsible === "" ? undefined : codeAnsible,
+        }),
+      });
+
+      if (!response.ok) {
+        setError(await readErrorMessage(response));
+        return;
+      }
+
+      onCreated();
+    } catch {
+      setError(GENERIC_ERROR_MESSAGE);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -27,37 +105,81 @@ export default function CreateTicketForm({ onClose }: CreateTicketFormProps) {
 
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="datacenter" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="datacenter"
+              className="text-sm font-medium text-gray-700"
+            >
               Datacenter
             </label>
             <input
               id="datacenter"
               type="text"
-              value="Datacenter"
+              value={FIXED_DEPARTMENT}
               disabled
               className="rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="asunto" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="assignee"
+              className="text-sm font-medium text-gray-700"
+            >
+              Asignar a
+            </label>
+            <select
+              id="assignee"
+              required
+              value={assignee}
+              onChange={(event) =>
+                setAssignee(
+                  event.target.value === "" ? "" : Number(event.target.value),
+                )
+              }
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+            >
+              <option value="">Seleccioná un approver o admin</option>
+              {approvers.map((approver) => (
+                <option key={approver.id} value={approver.id}>
+                  {approver.name} {approver.lastname} ({approver.email})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="asunto"
+              className="text-sm font-medium text-gray-700"
+            >
               Asunto
             </label>
             <input
               id="asunto"
               type="text"
+              required
+              maxLength={100}
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
               placeholder="Asunto del ticket"
               className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="descripcion" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="descripcion"
+              className="text-sm font-medium text-gray-700"
+            >
               Descripción
             </label>
             <textarea
               id="descripcion"
               rows={3}
+              required
+              maxLength={200}
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
               placeholder="Describí el problema o la solicitud"
               className="resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
             />
@@ -70,19 +192,38 @@ export default function CreateTicketForm({ onClose }: CreateTicketFormProps) {
             <textarea
               id="yaml"
               rows={6}
+              maxLength={500}
+              value={codeAnsible}
+              onChange={(event) => setCodeAnsible(event.target.value)}
               placeholder={"clave: valor\notra_clave: otro_valor"}
               className="resize-none rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
             />
           </div>
 
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
           <button
             type="submit"
-            className="mt-2 rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800"
+            disabled={isSubmitting}
+            className="mt-2 rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-60"
           >
-            Enviar
+            {isSubmitting ? "Enviando..." : "Enviar"}
           </button>
         </form>
       </div>
     </div>
   );
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  const body: unknown = await response.json().catch(() => null);
+  if (
+    body &&
+    typeof body === "object" &&
+    "message" in body &&
+    typeof body.message === "string"
+  ) {
+    return body.message;
+  }
+  return GENERIC_ERROR_MESSAGE;
 }
