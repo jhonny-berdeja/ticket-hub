@@ -15,12 +15,15 @@ const TICKET_NOT_FOUND_MESSAGE = "No se encontró ese ticket.";
 const SEARCH_ERROR_MESSAGE = "No se pudo buscar el ticket. Intentá de nuevo.";
 
 /**
- * Shared chrome for every page under /home: the header (ABMC Usuarios,
- * ticket search, Cerrar sesión, avatar) stays visible while only the
- * page content below it changes - /home and /home/usuarios both render
- * through here via `children`. "Crear ticket" lives in app/home/page.tsx
- * instead, alongside the ticket list it needs to refresh after a create -
- * it doesn't make sense floating over /home/usuarios anyway.
+ * Shared chrome for every page under /home: the header (ABMC Tickets,
+ * ABMC Usuarios, ticket search, Cerrar sesión, avatar) stays visible
+ * while only the page content below it changes - /home, /home/tickets
+ * and /home/usuarios all render through here via `children`. ABMC
+ * Tickets has no role gate (every role has some form of ticket access);
+ * ABMC Usuarios is ADMIN-only. "Crear ticket" lives in
+ * app/home/tickets/page.tsx, alongside the ticket list it needs to
+ * refresh after a create - it doesn't make sense floating over
+ * /home/usuarios.
  */
 export default function HomeLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -86,6 +89,13 @@ export default function HomeLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-full flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-4">
         <div className="flex items-center gap-3">
+          <Link
+            href="/home/tickets"
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+          >
+            ABMC Tickets
+          </Link>
+
           {isAdmin && (
             <Link
               href="/home/usuarios"
