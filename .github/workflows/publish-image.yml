@@ -1,0 +1,89 @@
+name: Publish ticket-hub image
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: publish-ticket-hub-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and push image
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.image_tag.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine image tag
+        id: image_tag
+        # Branch-name tag. Only `master` can trigger this workflow, so
+        # the tag is always `master` in practice; the sanitization below
+        # is defensive future-proofing, mirrors ticket-hub-api's pattern.
+        run: |
+          RAW="${{ github.ref_name }}"
+          SAFE="$(echo "$RAW" | sed -E 's/[^a-zA-Z0-9._-]/-/g')"
+          echo "tag=$SAFE" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ticket-hub:${{ steps.image_tag.outputs.tag }}
+
+  dispatch-deploy:
+    # GitHub environments have no free-text "description" field shown to
+    # reviewers in the Review-deployments panel - the job name is the
+    # only self-explanatory text that surfaces there, so it doubles as
+    # that description. Mirrors ticket-hub-api's gate placement.
+    name: "Aprobar: infra-hub va a desplegar esta imagen en pcbox microk8s"
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    # Approval gate lives HERE, same pattern as ticket-hub-api: the
+    # native "Review deployments -> Approve and deploy" button appears
+    # right on THIS run's page. Configure required reviewers on THIS
+    # repo's `production` environment, and remember to uncheck "Allow
+    # administrators to bypass configured protection rules" in the UI -
+    # that flag is not settable via the API and defaults to on.
+    environment: production
+    steps:
+      - name: Trigger deploy in infra-hub
+        # Least-privilege bridge, same as ticket-hub-api: the PAT behind
+        # INFRA_HUB_DISPATCH_TOKEN is scoped to `actions: write` only on
+        # infra-hub. Uses `workflow_dispatch` via the GitHub CLI, not
+        # `repository_dispatch` (the latter's endpoint requires
+        # `contents: write` on a fine-grained PAT, which would defeat
+        # this scope - verified against GitHub's REST API docs).
+        env:
+          GH_TOKEN: ${{ secrets.INFRA_HUB_DISPATCH_TOKEN }}
+        run: |
+          gh workflow run deploy-ticket-hub.yml \
+            --repo "${{ github.repository_owner }}/infra-hub" \
+            --ref master \
+            -f image_tag="${{ needs.build-and-push.outputs.image_tag }}"
+
+      - name: Link to the deploy in infra-hub
+        # This step runs only after the approval gate above has already
+        # passed, so infra-hub's run proceeds without a second approval
+        # (its deploy-ticket-hub.yml has no environment gate of its own).
+        run: |
+          {
+            echo "## 🚀 Deploy aprobado y disparado hacia infra-hub"
+            echo ""
+            echo "Este run pusheó \`${{ secrets.DOCKERHUB_USERNAME }}/ticket-hub:${{ needs.build-and-push.outputs.image_tag }}\` y, una vez aprobado arriba, le avisó a \`infra-hub\` que despliegue esa imagen en el cluster microk8s de pcbox. infra-hub la aplica automáticamente - no hace falta otra aprobación ahí."
+            echo ""
+            echo "**[▶ Ver el run de deploy en infra-hub](https://github.com/${{ github.repository_owner }}/infra-hub/actions/workflows/deploy-ticket-hub.yml)**"
+          } >> "$GITHUB_STEP_SUMMARY"

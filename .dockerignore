@@ -1,0 +1,14 @@
+node_modules
+.next
+coverage
+.git
+.github
+.vscode
+.idea
+.claude
+.atl
+*.md
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
