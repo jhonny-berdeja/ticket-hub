@@ -6,6 +6,11 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# This project has no public/ directory (App Router serves its only
+# static asset, favicon.ico, from app/) - the runtime stage's COPY
+# --from=build /app/public below needs the directory to exist even
+# empty, or the build fails with "not found".
+RUN mkdir -p public
 RUN npm run build
 
 # --- runtime stage: standalone server output only, no dev deps ---
