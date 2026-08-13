@@ -1,33 +1,30 @@
-import type {
-  EditableUser,
-  Role,
-} from "@/app/home/users/components/users-context/users-context.dto";
+import type { EditableUser, Role } from "@/app/home/users/users.dto";
 
-const GENERIC_ERROR_MESSAGE = "No se pudo crear el usuario. Intentá de nuevo.";
+const GENERIC_ERROR_MESSAGE = "No se pudo editar el usuario. Intentá de nuevo.";
 
-interface CreateUserPayload {
+interface UpdateUserPayload {
   name: string;
   lastname: string;
   email: string;
-  password: string;
   roles: Role[];
 }
 
 /** Thrown for a non-ok response, carrying the server's message (or the generic fallback). */
-export class CreateUserApiError extends Error {}
+export class UpdateUserApiError extends Error {}
 
-/** Creates a user. Rejects with CreateUserApiError on a non-ok response; any other rejection means a network failure. */
-export async function createUser(
-  payload: CreateUserPayload,
+/** Updates a user. Rejects with UpdateUserApiError on a non-ok response; any other rejection means a network failure. */
+export async function updateUserRequest(
+  userId: number,
+  payload: UpdateUserPayload,
 ): Promise<EditableUser> {
-  const response = await fetch("/api/users", {
-    method: "POST",
+  const response = await fetch(`/api/users/${userId}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
-    throw new CreateUserApiError(await readErrorMessage(response));
+    throw new UpdateUserApiError(await readErrorMessage(response));
   }
 
   const body: { data: EditableUser } = await response.json();

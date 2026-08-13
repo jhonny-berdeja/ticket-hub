@@ -9,6 +9,12 @@ import type { CurrentUser, Status } from "@/common/use-current-user/use-current-
  * callers gating ADMIN-only UI (the ABMC Usuarios button/page) can avoid
  * flashing it before the check resolves, instead of defaulting to
  * "not admin" and then popping the UI in a moment later.
+ *
+ * Only owns fetching + auth state. Role rules (isAdmin,
+ * canApproveTickets) live in use-current-user.service and are called
+ * directly by whichever consumer needs them (see layout.tsx, tickets
+ * and users pages) -- keeps this hook single-purpose instead of
+ * forcing every consumer to receive derived values it doesn't need.
  */
 export function useCurrentUser(): { status: Status; user: CurrentUser | null } {
   const [status, setStatus] = useState<Status>("loading");

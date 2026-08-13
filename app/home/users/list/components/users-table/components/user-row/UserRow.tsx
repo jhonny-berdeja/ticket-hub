@@ -1,5 +1,5 @@
-import { useUsersContext } from "@/app/home/users/components/users-context/use-users-context";
-import type { EditableUser } from "@/app/home/users/components/users-context/users-context.dto";
+import Link from "next/link";
+import type { EditableUser } from "@/app/home/users/users.dto";
 
 interface UserRowProps {
   user: EditableUser;
@@ -7,13 +7,12 @@ interface UserRowProps {
 
 /**
  * Independent per row: gets its own user by prop from UsersTable (the
- * one direction of data flow that's still allowed - parent to child),
- * and reaches into UsersContext directly for the edit action instead
- * of bubbling a click up through UsersTable.
+ * one direction of data flow that's still allowed -- parent to
+ * child). The edit action is now a real navigation, a <Link> to the
+ * user's edit route, instead of an onClick reaching into
+ * UsersActions -- there's no Context left to reach into.
  */
 export default function UserRow({ user }: UserRowProps) {
-  const { openEdit } = useUsersContext();
-
   return (
     <tr>
       <td className="px-4 py-3 text-gray-900">{user.name}</td>
@@ -21,14 +20,13 @@ export default function UserRow({ user }: UserRowProps) {
       <td className="px-4 py-3 text-gray-900">{user.email}</td>
       <td className="px-4 py-3 text-gray-900">{user.roles.join(", ")}</td>
       <td className="px-4 py-3 text-right">
-        <button
-          type="button"
-          onClick={() => openEdit(user)}
+        <Link
+          href={`/home/users/${user.id}/edit`}
           aria-label={`Editar ${user.email}`}
           className="text-gray-400 hover:text-gray-600"
         >
           ✏️
-        </button>
+        </Link>
       </td>
     </tr>
   );

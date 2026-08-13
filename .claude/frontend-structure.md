@@ -46,6 +46,7 @@ components/
 | `ComponentName.tsx` | Implementación visual/estructural del componente |
 | `component-name.api.ts` | Llamadas a la API relacionadas a este componente |
 | `component-name.dto.ts` | Clases de datos (patrón builder), modelos, mappers |
+| `component-name.service.ts` | Lógica de negocio pura (sin React, sin llamadas a API): reglas derivadas sobre datos que el componente/hook ya tiene, testeables sin renderizar nada |
 | `component-name.provider.tsx` | Implementación del `ComponentNameProvider` |
 | `component-name.context.ts` | Creación del `ComponentNameContext` (`createContext`) |
 | `use-component-name.ts` | Hook custom para consumir el contexto (`useComponentName`) |
@@ -113,8 +114,8 @@ common/
 
 **Misma regla que `components/`:** cada unidad tiene su propia carpeta
 kebab-case, con los mismos archivos hermanos (`.tsx`, `.api.ts`,
-`.dto.ts`, `.provider.tsx`, `.context.ts`, `use-*.ts`), usando solo los
-que su responsabilidad requiere. No hay una estructura distinta para
+`.dto.ts`, `.service.ts`, `.provider.tsx`, `.context.ts`, `use-*.ts`),
+usando solo los que su responsabilidad requiere. No hay una estructura distinta para
 "lo compartido" — es la misma regla, en otro nivel del árbol.
 
 ### Regla de promoción (cuándo algo pasa a `common/`)

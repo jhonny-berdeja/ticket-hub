@@ -1,4 +1,4 @@
-import type { EditableUser } from "@/app/home/users/components/users-context/users-context.dto";
+import type { EditableUser } from "@/app/home/users/users.dto";
 
 /** Fetches the full user list. Throws on a non-ok response or network failure. */
 export async function fetchUsers(): Promise<EditableUser[]> {

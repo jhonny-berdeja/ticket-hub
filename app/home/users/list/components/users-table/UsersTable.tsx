@@ -1,14 +1,18 @@
-import { useUsersContext } from "@/app/home/users/components/users-context/use-users-context";
-import UserRow from "@/app/home/users/components/users-page-content/components/users-table/components/user-row/UserRow";
+import UserRow from "@/app/home/users/list/components/users-table/components/user-row/UserRow";
+import type { EditableUser } from "@/app/home/users/users.dto";
+
+interface UsersTableProps {
+  users: EditableUser[];
+  isLoading: boolean;
+  error: string | null;
+}
 
 /**
- * Owns rendering the user list: reads users/isLoading/error straight
- * from UsersContext (no props from UsersPage), and renders one
- * UserRow per user.
+ * Takes users/isLoading/error as props from its direct parent
+ * (list/page.tsx) -- no Context needed here, this is plain
+ * parent-to-child data flow.
  */
-export default function UsersTable() {
-  const { users, isLoading, error } = useUsersContext();
-
+export default function UsersTable({ users, isLoading, error }: UsersTableProps) {
   return (
     <div className="flex flex-col gap-4">
       {error && <p className="text-sm text-red-600">{error}</p>}
