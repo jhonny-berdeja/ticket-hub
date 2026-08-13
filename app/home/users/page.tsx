@@ -1,39 +1,29 @@
-"use client";
+import Link from "next/link";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { UsersProvider } from "@/app/home/users/components/users-context/users-context.provider";
-import UsersPageContent from "@/app/home/users/components/users-page-content/UsersPageContent";
-import { useCurrentUser } from "@/common/use-current-user/use-current-user";
-
-const ADMIN_ROLE = "ADMIN";
-const NOT_ADMIN_REDIRECT_PATH = "/home";
-
+/**
+ * Landing for the Users section: structure + composition only, no
+ * fetching, no state. Just the two entry points into the routed
+ * flows -- viewing the list and creating a user.
+ */
 export default function UsersPage() {
-  const router = useRouter();
-  const { status: authStatus, user } = useCurrentUser();
-  const isAdmin =
-    authStatus === "authenticated" &&
-    user !== null &&
-    user.roles.includes(ADMIN_ROLE);
-
-  // Defense in depth against direct URL navigation: the ABMC Usuarios
-  // link is already hidden for non-admins in the layout, but this page
-  // must not render its content for anyone who types the URL directly.
-  // Nothing renders below (see the early return) until this resolves.
-  useEffect(() => {
-    if (authStatus !== "loading" && !isAdmin) {
-      router.replace(NOT_ADMIN_REDIRECT_PATH);
-    }
-  }, [authStatus, isAdmin, router]);
-
-  if (!isAdmin) {
-    return null;
-  }
-
   return (
-    <UsersProvider enabled={isAdmin}>
-      <UsersPageContent />
-    </UsersProvider>
+    <div className="flex flex-1 flex-col gap-6 p-6">
+      <h1 className="text-xl font-semibold text-gray-900">ABMC Usuarios</h1>
+
+      <div className="flex gap-3">
+        <Link
+          href="/home/users/list"
+          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+        >
+          Ver usuarios
+        </Link>
+        <Link
+          href="/home/users/create"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+        >
+          Crear usuario
+        </Link>
+      </div>
+    </div>
   );
 }

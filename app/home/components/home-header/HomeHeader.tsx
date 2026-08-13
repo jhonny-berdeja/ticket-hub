@@ -3,38 +3,34 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import TicketDetailsModal from "@/common/ticket-details-modal/TicketDetailsModal";
-import type { TicketDetails } from "@/common/ticket-details-modal/ticket-details-modal.dto";
+import { useCurrentUser } from "@/common/use-current-user/use-current-user";
+import { isAdmin as checkIsAdmin } from "@/common/use-current-user/use-current-user.service";
 import {
   logout,
   searchTicketByNumber,
-  TicketNotFoundError,
 } from "@/app/home/components/home-header/home-header.api";
-
-const NUMBER_PREFIX = "TK-";
-const TICKET_NOT_FOUND_MESSAGE = "No se encontró ese ticket.";
-const SEARCH_ERROR_MESSAGE = "No se pudo buscar el ticket. Intentá de nuevo.";
-
-interface HomeHeaderProps {
-  isAdmin: boolean;
-  canApproveTickets: boolean;
-}
+import {
+  parseTicketNumber,
+  resolveSearchErrorMessage,
+} from "@/app/home/components/home-header/home-header.service";
 
 /**
  * Shared chrome for every page under /home: the header (ABMC Tickets,
- * ABMC Usuarios, ticket search, Cerrar sesión, avatar) plus the ticket
- * search result modal. isAdmin/canApproveTickets come from HomeLayout
- * as plain parent-to-child props - both are derived once from
- * useCurrentUser and only used for conditional rendering here, so no
- * Context is needed.
+ * ABMC Usuarios, ticket search, Cerrar sesión, avatar). Determines
+ * isAdmin for itself instead of receiving it as a prop, same reasoning
+ * as TicketDetail's canApprove: no caller needed that value for
+ * anything but handing it to this component. A found ticket navigates
+ * to its detail route instead of opening a context-driven modal --
+ * there's no shared ticket-modal state left to reach into.
  */
-export default function HomeHeader({ isAdmin, canApproveTickets }: HomeHeaderProps) {
+export default function HomeHeader() {
   const router = useRouter();
+  const { user } = useCurrentUser();
+  const isAdmin = checkIsAdmin(user);
 
   const [searchValue, setSearchValue] = useState("");
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [foundTicket, setFoundTicket] = useState<TicketDetails | null>(null);
 
   // No error handling on the fetch: even if it fails, the cookie can't
   // be cleared client-side (httpOnly), so redirecting to /login
@@ -48,12 +44,7 @@ export default function HomeHeader({ isAdmin, canApproveTickets }: HomeHeaderPro
   async function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    // Accepts "TK-5" or just "5" - strips the prefix either way before
-    // hitting the API, which only deals in the bare integer.
-    const bareNumber = searchValue.trim().toUpperCase().replace(
-      new RegExp(`^${NUMBER_PREFIX}`),
-      "",
-    );
+    const bareNumber = parseTicketNumber(searchValue);
     if (!bareNumber) {
       return;
     }
@@ -62,20 +53,12 @@ export default function HomeHeader({ isAdmin, canApproveTickets }: HomeHeaderPro
     setIsSearching(true);
     try {
       const ticket = await searchTicketByNumber(bareNumber);
-      setFoundTicket(ticket);
+      router.push(`/home/tickets/${ticket.id}`);
     } catch (error) {
-      setSearchError(
-        error instanceof TicketNotFoundError
-          ? TICKET_NOT_FOUND_MESSAGE
-          : SEARCH_ERROR_MESSAGE,
-      );
+      setSearchError(resolveSearchErrorMessage(error));
     } finally {
       setIsSearching(false);
     }
-  }
-
-  function handleApproved() {
-    setFoundTicket(null);
   }
 
   return (
@@ -138,15 +121,6 @@ export default function HomeHeader({ isAdmin, canApproveTickets }: HomeHeaderPro
         <p className="border-b border-gray-200 bg-white px-6 py-2 text-sm text-red-600">
           {searchError}
         </p>
-      )}
-
-      {foundTicket && (
-        <TicketDetailsModal
-          ticket={foundTicket}
-          canApprove={canApproveTickets}
-          onClose={() => setFoundTicket(null)}
-          onApproved={handleApproved}
-        />
       )}
     </>
   );
