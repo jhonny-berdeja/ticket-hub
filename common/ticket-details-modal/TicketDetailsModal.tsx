@@ -1,14 +1,6 @@
 import { useState } from "react";
-
-export interface TicketDetails {
-  id: number;
-  number: string;
-  department: string;
-  subject: string;
-  status: "CREATED" | "APPROVED";
-  description: string;
-  codeAnsible: string | null;
-}
+import { approveTicket } from "@/common/ticket-details-modal/ticket-details-modal.api";
+import type { TicketDetails } from "@/common/ticket-details-modal/ticket-details-modal.dto";
 
 interface TicketDetailsModalProps {
   ticket: TicketDetails;
@@ -33,13 +25,7 @@ export default function TicketDetailsModal({
     setError(null);
     setIsApproving(true);
     try {
-      const response = await fetch(`/api/tickets/${ticket.id}/approve`, {
-        method: "PATCH",
-      });
-      if (!response.ok) {
-        setError(APPROVE_ERROR_MESSAGE);
-        return;
-      }
+      await approveTicket(ticket.id);
       onApproved();
     } catch {
       setError(APPROVE_ERROR_MESSAGE);

@@ -1,11 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-
-interface Approver {
-  id: number;
-  name: string;
-  lastname: string;
-  email: string;
-}
+import {
+  fetchApprovers,
+  createTicket,
+  CreateTicketApiError,
+} from "@/app/home/tickets/components/tickets-page-content/components/create-ticket-form/create-ticket-form.api";
+import type { Approver } from "@/app/home/tickets/components/tickets-page-content/components/create-ticket-form/create-ticket-form.dto";
 
 const FIXED_DEPARTMENT = "Datacenter";
 const NO_ASSIGNEE_MESSAGE = "Seleccioná a quién asignar el ticket.";
@@ -31,16 +30,11 @@ export default function CreateTicketForm({
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/users/approvers")
-      .then((response) => {
-        if (cancelled || !response.ok) {
-          return;
+    fetchApprovers()
+      .then((loadedApprovers) => {
+        if (!cancelled) {
+          setApprovers(loadedApprovers);
         }
-        return response.json().then((body: { data: Approver[] }) => {
-          if (!cancelled) {
-            setApprovers(body.data);
-          }
-        });
       })
       .catch(() => {
         // Leaves approvers empty - the select just shows no options, the
@@ -63,26 +57,21 @@ export default function CreateTicketForm({
     setError(null);
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/tickets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          assignee,
-          department: FIXED_DEPARTMENT,
-          subject,
-          description,
-          codeAnsible: codeAnsible === "" ? undefined : codeAnsible,
-        }),
+      await createTicket({
+        assignee,
+        department: FIXED_DEPARTMENT,
+        subject,
+        description,
+        codeAnsible: codeAnsible === "" ? undefined : codeAnsible,
       });
 
-      if (!response.ok) {
-        setError(await readErrorMessage(response));
-        return;
-      }
-
       onCreated();
-    } catch {
-      setError(GENERIC_ERROR_MESSAGE);
+    } catch (submitError) {
+      setError(
+        submitError instanceof CreateTicketApiError
+          ? submitError.message
+          : GENERIC_ERROR_MESSAGE,
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -213,17 +202,4 @@ export default function CreateTicketForm({
       </div>
     </div>
   );
-}
-
-async function readErrorMessage(response: Response): Promise<string> {
-  const body: unknown = await response.json().catch(() => null);
-  if (
-    body &&
-    typeof body === "object" &&
-    "message" in body &&
-    typeof body.message === "string"
-  ) {
-    return body.message;
-  }
-  return GENERIC_ERROR_MESSAGE;
 }

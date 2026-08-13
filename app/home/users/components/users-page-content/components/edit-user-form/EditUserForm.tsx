@@ -1,35 +1,63 @@
 import { useState, type FormEvent } from "react";
-
-const ROLE_OPTIONS = ["ADMIN", "DEV", "APPROVER"] as const;
-type Role = (typeof ROLE_OPTIONS)[number];
+import { useUsersContext } from "@/app/home/users/components/users-context/use-users-context";
+import {
+  ROLE_OPTIONS,
+  type EditableUser,
+  type Role,
+} from "@/app/home/users/components/users-context/users-context.dto";
+import {
+  updateUserRequest,
+  UpdateUserApiError,
+} from "@/app/home/users/components/users-page-content/components/edit-user-form/edit-user-form.api";
 
 const MISSING_ROLE_MESSAGE = "Seleccioná al menos un rol.";
 const GENERIC_ERROR_MESSAGE = "No se pudo editar el usuario. Intentá de nuevo.";
-
-export interface EditableUser {
-  id: number;
-  name: string;
-  lastname: string;
-  email: string;
-  roles: Role[];
-}
-
-interface EditUserFormProps {
-  user: EditableUser;
-  onClose: () => void;
-  onUpdated: () => void;
-}
 
 /**
  * Independent from CreateUserForm on purpose (separate product decision):
  * no password field - that's a different flow - and every field starts
  * pre-filled from the user being edited instead of empty.
+ *
+ * Reads editingUser/closeEdit/updateUser from UsersContext instead of
+ * receiving user/onClose/onUpdated as props -- the edited user goes
+ * straight into the context, never back up to UsersPage by
+ * parameter. Field state is seeded from context.editingUser once,
+ * when this stops being null (see the key on the parent's usage).
  */
-export default function EditUserForm({
-  user,
-  onClose,
-  onUpdated,
-}: EditUserFormProps) {
+export default function EditUserForm() {
+  const { editingUser, closeEdit, updateUser } = useUsersContext();
+
+  if (!editingUser) {
+    return null;
+  }
+
+  return (
+    <EditUserFormFields
+      // Forces a remount if editingUser ever changes to a *different*
+      // user while already open, so field state reseeds instead of
+      // carrying over stale values from the previous edit session.
+      key={editingUser.id}
+      user={editingUser}
+      onClose={closeEdit}
+      onSave={updateUser}
+    />
+  );
+}
+
+interface EditUserFormFieldsProps {
+  user: EditableUser;
+  onClose: () => void;
+  onSave: (user: EditableUser) => void;
+}
+
+/**
+ * Split from EditUserForm so field state can seed from `user` exactly
+ * once per edit session (mounted fresh each time context.editingUser
+ * goes from null to a user, via the `key` on the parent's usage) --
+ * `user` itself is still a normal parent-to-child prop, only passed
+ * one component down from EditUserForm's own context read.
+ */
+function EditUserFormFields({ user, onClose, onSave }: EditUserFormFieldsProps) {
   const [name, setName] = useState(user.name);
   const [lastname, setLastname] = useState(user.lastname);
   const [email, setEmail] = useState(user.email);
@@ -56,20 +84,19 @@ export default function EditUserForm({
     setError(null);
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/users/${user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, lastname, email, roles }),
+      const updated = await updateUserRequest(user.id, {
+        name,
+        lastname,
+        email,
+        roles,
       });
-
-      if (!response.ok) {
-        setError(await readErrorMessage(response));
-        return;
-      }
-
-      onUpdated();
-    } catch {
-      setError(GENERIC_ERROR_MESSAGE);
+      onSave(updated);
+    } catch (submitError) {
+      setError(
+        submitError instanceof UpdateUserApiError
+          ? submitError.message
+          : GENERIC_ERROR_MESSAGE,
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -181,17 +208,4 @@ export default function EditUserForm({
       </div>
     </div>
   );
-}
-
-async function readErrorMessage(response: Response): Promise<string> {
-  const body: unknown = await response.json().catch(() => null);
-  if (
-    body &&
-    typeof body === "object" &&
-    "message" in body &&
-    typeof body.message === "string"
-  ) {
-    return body.message;
-  }
-  return GENERIC_ERROR_MESSAGE;
 }

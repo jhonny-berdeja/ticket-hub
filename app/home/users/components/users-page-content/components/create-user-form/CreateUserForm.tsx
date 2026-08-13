@@ -1,20 +1,25 @@
 import { useState, type FormEvent } from "react";
-
-const ROLE_OPTIONS = ["ADMIN", "DEV", "APPROVER"] as const;
-type Role = (typeof ROLE_OPTIONS)[number];
+import { useUsersContext } from "@/app/home/users/components/users-context/use-users-context";
+import {
+  ROLE_OPTIONS,
+  type Role,
+} from "@/app/home/users/components/users-context/users-context.dto";
+import {
+  createUser,
+  CreateUserApiError,
+} from "@/app/home/users/components/users-page-content/components/create-user-form/create-user-form.api";
 
 const MISSING_ROLE_MESSAGE = "Seleccioná al menos un rol.";
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el usuario. Intentá de nuevo.";
 
-interface CreateUserFormProps {
-  onClose: () => void;
-  onCreated: () => void;
-}
+/**
+ * Reads isCreateOpen/closeCreate/addUser from UsersContext instead of
+ * receiving onClose/onCreated as props -- no data crosses back up to
+ * UsersPage by parameter, it's written straight into the context.
+ */
+export default function CreateUserForm() {
+  const { isCreateOpen, closeCreate, addUser } = useUsersContext();
 
-export default function CreateUserForm({
-  onClose,
-  onCreated,
-}: CreateUserFormProps) {
   const [name, setName] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
@@ -22,6 +27,10 @@ export default function CreateUserForm({
   const [roles, setRoles] = useState<Role[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!isCreateOpen) {
+    return null;
+  }
 
   function toggleRole(role: Role) {
     setRoles((current) =>
@@ -42,20 +51,14 @@ export default function CreateUserForm({
     setError(null);
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, lastname, email, password, roles }),
-      });
-
-      if (!response.ok) {
-        setError(await readErrorMessage(response));
-        return;
-      }
-
-      onCreated();
-    } catch {
-      setError(GENERIC_ERROR_MESSAGE);
+      const user = await createUser({ name, lastname, email, password, roles });
+      addUser(user);
+    } catch (submitError) {
+      setError(
+        submitError instanceof CreateUserApiError
+          ? submitError.message
+          : GENERIC_ERROR_MESSAGE,
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +73,7 @@ export default function CreateUserForm({
           </h2>
           <button
             type="button"
-            onClick={onClose}
+            onClick={closeCreate}
             aria-label="Cerrar"
             className="text-gray-400 hover:text-gray-600"
           >
@@ -185,17 +188,4 @@ export default function CreateUserForm({
       </div>
     </div>
   );
-}
-
-async function readErrorMessage(response: Response): Promise<string> {
-  const body: unknown = await response.json().catch(() => null);
-  if (
-    body &&
-    typeof body === "object" &&
-    "message" in body &&
-    typeof body.message === "string"
-  ) {
-    return body.message;
-  }
-  return GENERIC_ERROR_MESSAGE;
 }
