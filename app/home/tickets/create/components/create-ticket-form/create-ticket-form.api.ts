@@ -1,4 +1,4 @@
-import type { Approver } from "@/app/home/tickets/components/tickets-page-content/components/create-ticket-form/create-ticket-form.dto";
+import type { Approver } from "@/app/home/tickets/create/components/create-ticket-form/create-ticket-form.dto";
 
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 

@@ -1,4 +1,4 @@
-import type { TicketDetails } from "@/common/ticket-details-modal/ticket-details-modal.dto";
+import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
 
 /** Fetches the full ticket list. Throws on a non-ok response or network failure. */
 export async function fetchTickets(): Promise<TicketDetails[]> {

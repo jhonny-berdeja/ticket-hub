@@ -1,4 +1,4 @@
-import type { TicketDetails } from "@/common/ticket-details-modal/ticket-details-modal.dto";
+import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
 
 /** Logs the current user out. Never throws - the httpOnly cookie can't be cleared client-side anyway. */
 export async function logout(): Promise<void> {

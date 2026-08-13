@@ -1,23 +1,29 @@
-import type { TicketDetails } from "@/common/ticket-details-modal/ticket-details-modal.dto";
+"use client";
+
+import { useRouter } from "next/navigation";
+import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
 
 interface TicketsTableProps {
   tickets: TicketDetails[];
   isLoading: boolean;
   error: string | null;
-  onSelectTicket: (ticket: TicketDetails) => void;
 }
 
 /**
- * Owns rendering the ticket list: receives tickets/isLoading/error and
- * the row-click callback as props from TicketsPageContent (its direct
- * parent) — plain parent-to-child data flow, no Context needed here.
+ * Takes tickets/isLoading/error as props from its direct parent
+ * (list/page.tsx) -- no Context needed here, this is plain
+ * parent-to-child data flow. Navigation to a ticket's detail route
+ * happens directly in each row's onClick: a <tr> can't be wrapped in
+ * a <Link> the way UserRow's pencil icon can (a <tr> genuinely can't
+ * nest inside an <a>), so this uses useRouter().push() instead.
  */
 export default function TicketsTable({
   tickets,
   isLoading,
   error,
-  onSelectTicket,
 }: TicketsTableProps) {
+  const router = useRouter();
+
   return (
     <div className="flex flex-col gap-4">
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -57,7 +63,7 @@ export default function TicketsTable({
               tickets.map((ticket) => (
                 <tr
                   key={ticket.id}
-                  onClick={() => onSelectTicket(ticket)}
+                  onClick={() => router.push(`/home/tickets/${ticket.id}`)}
                   className="cursor-pointer hover:bg-gray-50"
                 >
                   <td className="px-4 py-3 text-gray-900">{ticket.number}</td>
