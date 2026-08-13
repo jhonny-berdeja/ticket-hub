@@ -1,14 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-export interface CurrentUser {
-  sub: number;
-  email: string;
-  roles: string[];
-}
-
-type Status = "loading" | "authenticated" | "unauthenticated";
+import { fetchCurrentUser } from "@/common/use-current-user/use-current-user.api";
+import type { CurrentUser, Status } from "@/common/use-current-user/use-current-user.dto";
 
 /**
  * Fetches /api/me once on mount. Status starts "loading" on purpose so
@@ -23,18 +17,11 @@ export function useCurrentUser(): { status: Status; user: CurrentUser | null } {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/me")
-      .then((response) => {
+    fetchCurrentUser()
+      .then((current) => {
         if (cancelled) return;
-        if (!response.ok) {
-          setStatus("unauthenticated");
-          return;
-        }
-        return response.json().then((body: { data: CurrentUser }) => {
-          if (cancelled) return;
-          setUser(body.data);
-          setStatus("authenticated");
-        });
+        setUser(current);
+        setStatus("authenticated");
       })
       .catch(() => {
         if (!cancelled) setStatus("unauthenticated");
