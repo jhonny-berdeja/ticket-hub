@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import TicketsTable from "@/app/home/tickets/list/components/tickets-table/TicketsTable";
 import { fetchTickets } from "@/app/home/tickets/tickets.api";
 import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
@@ -42,15 +41,7 @@ export default function TicketsListPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">ABMC Tickets</h1>
-        <Link
-          href="/home/tickets/create"
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-        >
-          Crear ticket
-        </Link>
-      </div>
+      <h1 className="text-xl font-semibold text-gray-900">ABMC Tickets</h1>
 
       <TicketsTable tickets={tickets} isLoading={isLoading} error={error} />
     </div>

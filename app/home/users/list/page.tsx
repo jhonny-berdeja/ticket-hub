@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import UsersTable from "@/app/home/users/list/components/users-table/UsersTable";
 import { fetchUsers } from "@/app/home/users/users.api";
 import type { EditableUser } from "@/app/home/users/users.dto";
@@ -42,15 +41,7 @@ export default function UsersListPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">ABMC Usuarios</h1>
-        <Link
-          href="/home/users/create"
-          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-        >
-          Crear Usuario
-        </Link>
-      </div>
+      <h1 className="text-xl font-semibold text-gray-900">ABMC Usuarios</h1>
 
       <UsersTable users={users} isLoading={isLoading} error={error} />
     </div>
