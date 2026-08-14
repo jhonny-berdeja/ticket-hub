@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import NavLink from "@/common/nav-link/NavLink";
 import { useCurrentUser } from "@/common/use-current-user/use-current-user";
 import { isAdmin as checkIsAdmin } from "@/common/use-current-user/use-current-user.service";
 import {
@@ -65,21 +65,9 @@ export default function HomeHeader() {
     <>
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-4">
         <div className="flex items-center gap-3">
-          <Link
-            href="/home/tickets"
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-          >
-            ABMC Tickets
-          </Link>
+          <NavLink href="/home/tickets">ABMC Tickets</NavLink>
 
-          {isAdmin && (
-            <Link
-              href="/home/users"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-            >
-              ABMC Usuarios
-            </Link>
-          )}
+          {isAdmin && <NavLink href="/home/users">ABMC Usuarios</NavLink>}
         </div>
 
         <div className="flex items-center gap-3">
