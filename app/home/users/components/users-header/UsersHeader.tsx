@@ -1,4 +1,4 @@
-import Link from "next/link";
+import NavLink from "@/common/nav-link/NavLink";
 
 /**
  * Fixed sub-header for the whole /home/users tree, same role
@@ -9,18 +9,8 @@ import Link from "next/link";
 export default function UsersHeader() {
   return (
     <header className="flex items-center gap-3 border-b border-gray-200 bg-white px-6 py-4">
-      <Link
-        href="/home/users/list"
-        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-      >
-        Ver usuarios
-      </Link>
-      <Link
-        href="/home/users/create"
-        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-      >
-        Crear usuario
-      </Link>
+      <NavLink href="/home/users/list">Ver usuarios</NavLink>
+      <NavLink href="/home/users/create">Crear usuario</NavLink>
     </header>
   );
 }
