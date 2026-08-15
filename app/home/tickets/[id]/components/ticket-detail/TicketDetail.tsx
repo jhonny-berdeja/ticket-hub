@@ -75,6 +75,16 @@ export default function TicketDetail({ ticket }: TicketDetailProps) {
             </pre>
           </div>
         )}
+        {ticket.response && (
+          <div>
+            <span className="font-medium text-gray-700">
+              Respuesta de la ejecución:
+            </span>
+            <pre className="mt-1 whitespace-pre-wrap rounded-lg bg-gray-100 p-3 font-mono text-xs text-gray-700">
+              {ticket.response}
+            </pre>
+          </div>
+        )}
       </div>
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

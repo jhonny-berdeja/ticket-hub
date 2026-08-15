@@ -6,4 +6,5 @@ export interface TicketDetails {
   status: "CREATED" | "APPROVED";
   description: string;
   codeAnsible: string | null;
+  response: string | null;
 }
