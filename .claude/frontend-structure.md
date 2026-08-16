@@ -119,16 +119,6 @@ app/home/users/
   cada `page.tsx` (ej: redirigir si el usuario no es admin) — se escribe
   una sola vez y aplica a todo lo que cuelga de esa carpeta.
 
-### Patrón sin `GET`-by-id
-
-Si el backend no expone un endpoint para traer un solo registro por id
-(caso común en este proyecto), la página `[id]/...` fetchea la lista
-completa con el mismo `.api.ts` que usa `list/` y busca el que matchea
-`Number(id)` del lado del cliente. Es un fetch de más, aceptado a
-propósito para no tener que tocar el backend por esto. Esa página
-maneja cuatro estados: `loading`, error de carga, "no encontrado", y
-encontrado (recién ahí renderiza el componente real).
-
 ## 🧍 Componentes autosuficientes
 
 Si un valor no depende de quién esté usando el componente — es el mismo
