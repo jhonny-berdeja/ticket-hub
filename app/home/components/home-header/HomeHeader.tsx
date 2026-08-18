@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import NavLink from "@/common/nav-link/NavLink";
 import {
   logout,
   searchTicketByNumber,
@@ -13,10 +12,10 @@ import {
 } from "@/app/home/components/home-header/home-header.service";
 
 /**
- * Shared chrome for every page under /home: the header (ABMC Tickets,
- * ticket search, Cerrar sesión, avatar). A found ticket navigates to
- * its detail route instead of opening a context-driven modal -- there's
- * no shared ticket-modal state left to reach into.
+ * Shared chrome for every page under /home: the header (ticket search,
+ * Cerrar sesión, avatar). A found ticket navigates to its detail route
+ * instead of opening a context-driven modal -- there's no shared
+ * ticket-modal state left to reach into.
  */
 export default function HomeHeader() {
   const router = useRouter();
@@ -57,9 +56,7 @@ export default function HomeHeader() {
   return (
     <>
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-4">
-        <div className="flex items-center gap-3">
-          <NavLink href="/home/tickets">ABMC Tickets</NavLink>
-        </div>
+        <div />
 
         <div className="flex items-center gap-3">
           <form onSubmit={(event) => void handleSearch(event)} className="flex items-center gap-2">
