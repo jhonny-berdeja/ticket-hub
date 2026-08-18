@@ -1,10 +1,9 @@
 import NavLink from "@/common/nav-link/NavLink";
 
 /**
- * Fixed sub-nav for the whole /home/tickets tree, same role TicketsHeader
- * played: mounted once in tickets/layout.tsx, stays visible across the
- * landing, list, create, and detail routes instead of only showing on the
- * landing page.
+ * Left-side nav for the whole authenticated app, same role TicketsHeader
+ * played before it: mounted once in home/layout.tsx, stays visible across
+ * every /home route instead of only showing on the tickets landing page.
  */
 export default function TicketsSidebar() {
   return (
