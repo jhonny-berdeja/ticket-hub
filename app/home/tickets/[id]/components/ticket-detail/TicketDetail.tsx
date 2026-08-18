@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCurrentUser } from "@/common/use-current-user/use-current-user";
-import { canApproveTickets } from "@/common/use-current-user/use-current-user.service";
+import { isAdmin } from "@/common/use-current-user/use-current-user.service";
 import { approveTicket } from "@/app/home/tickets/[id]/components/ticket-detail/ticket-detail.api";
 import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
 
@@ -27,7 +27,7 @@ interface TicketDetailProps {
 export default function TicketDetail({ ticket }: TicketDetailProps) {
   const router = useRouter();
   const { user } = useCurrentUser();
-  const canApprove = canApproveTickets(user);
+  const canApprove = isAdmin(user);
 
   const [error, setError] = useState<string | null>(null);
   const [isApproving, setIsApproving] = useState(false);

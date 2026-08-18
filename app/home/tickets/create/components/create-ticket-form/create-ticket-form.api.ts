@@ -1,23 +1,11 @@
-import type { Approver } from "@/app/home/tickets/create/components/create-ticket-form/create-ticket-form.dto";
-
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 
 interface CreateTicketPayload {
-  assignee: number;
+  assignee: string;
   department: string;
   subject: string;
   description: string;
   codeAnsible: string | undefined;
-}
-
-/** Fetches the users eligible to be assigned a ticket (approvers/admins). Resolves to an empty list on failure. */
-export async function fetchApprovers(): Promise<Approver[]> {
-  const response = await fetch("/api/users/approvers");
-  if (!response.ok) {
-    throw new Error("Failed to load approvers");
-  }
-  const body: { data: Approver[] } = await response.json();
-  return body.data;
 }
 
 /** Thrown for a non-ok response, carrying the server's message (or the generic fallback). */

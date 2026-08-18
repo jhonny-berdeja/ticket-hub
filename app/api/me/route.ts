@@ -54,9 +54,44 @@ async function fetchCurrentUser(
   }
 }
 
+interface BackendMeResponse {
+  msg: string;
+  data: {
+    sub: number;
+    email: string;
+    apps: { application: { roles: { name: string }[] } };
+  };
+}
+
+/**
+ * ticket-hub-api's /auth/me nests roles under apps.application.roles
+ * (auth-api's token shape) -- flattened here to the roles: string[]
+ * shape use-current-user.dto's CurrentUser expects, so the frontend
+ * never has to know about that nesting.
+ */
 async function forwardBackendResponse(
   apiResponse: Response,
 ): Promise<NextResponse> {
   const body: unknown = await apiResponse.json().catch(() => null);
-  return NextResponse.json(body, { status: apiResponse.status });
+  if (!apiResponse.ok || !isBackendMeResponse(body)) {
+    return NextResponse.json(body, { status: apiResponse.status });
+  }
+
+  const { sub, email, apps } = body.data;
+  return NextResponse.json(
+    {
+      msg: body.msg,
+      data: { sub, email, roles: apps.application.roles.map((role) => role.name) },
+    },
+    { status: apiResponse.status },
+  );
+}
+
+function isBackendMeResponse(body: unknown): body is BackendMeResponse {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    "data" in body &&
+    typeof (body as { data: unknown }).data === "object"
+  );
 }

@@ -3,8 +3,6 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import NavLink from "@/common/nav-link/NavLink";
-import { useCurrentUser } from "@/common/use-current-user/use-current-user";
-import { isAdmin as checkIsAdmin } from "@/common/use-current-user/use-current-user.service";
 import {
   logout,
   searchTicketByNumber,
@@ -16,17 +14,12 @@ import {
 
 /**
  * Shared chrome for every page under /home: the header (ABMC Tickets,
- * ABMC Usuarios, ticket search, Cerrar sesión, avatar). Determines
- * isAdmin for itself instead of receiving it as a prop, same reasoning
- * as TicketDetail's canApprove: no caller needed that value for
- * anything but handing it to this component. A found ticket navigates
- * to its detail route instead of opening a context-driven modal --
- * there's no shared ticket-modal state left to reach into.
+ * ticket search, Cerrar sesión, avatar). A found ticket navigates to
+ * its detail route instead of opening a context-driven modal -- there's
+ * no shared ticket-modal state left to reach into.
  */
 export default function HomeHeader() {
   const router = useRouter();
-  const { user } = useCurrentUser();
-  const isAdmin = checkIsAdmin(user);
 
   const [searchValue, setSearchValue] = useState("");
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -66,8 +59,6 @@ export default function HomeHeader() {
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-4">
         <div className="flex items-center gap-3">
           <NavLink href="/home/tickets">ABMC Tickets</NavLink>
-
-          {isAdmin && <NavLink href="/home/users">ABMC Usuarios</NavLink>}
         </div>
 
         <div className="flex items-center gap-3">

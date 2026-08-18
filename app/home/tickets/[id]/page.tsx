@@ -20,7 +20,7 @@ interface TicketDetailPageProps {
  * tickets.api's fetchTickets() -- same as the list page -- and finds
  * the matching ticket client-side by the route's `id` param. Four
  * render states: loading, load failure, not found (id doesn't match
- * any ticket), and found. Mirrors app/home/users/[id]/edit/page.tsx.
+ * any ticket), and found.
  */
 export default function TicketDetailPage({ params }: TicketDetailPageProps) {
   const { id } = use(params);
