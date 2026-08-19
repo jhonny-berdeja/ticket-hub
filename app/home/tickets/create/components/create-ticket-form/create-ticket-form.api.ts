@@ -1,11 +1,25 @@
+import type {
+  DbTarget,
+  OperationType,
+  TicketType,
+} from "@/app/home/tickets/tickets.dto";
+
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
+const DB_TARGETS_ERROR_MESSAGE =
+  "No se pudieron cargar las bases de datos disponibles.";
 
 interface CreateTicketPayload {
   assignee: string;
   department: string;
   subject: string;
   description: string;
-  codeAnsible: string | undefined;
+  ticketType: TicketType;
+  codeAnsible?: string;
+  namespace?: string;
+  deployment?: string;
+  dbName?: string;
+  operationType?: OperationType;
+  sqlCode?: string;
 }
 
 /** Thrown for a non-ok response, carrying the server's message (or the generic fallback). */
@@ -22,6 +36,16 @@ export async function createTicket(payload: CreateTicketPayload): Promise<void> 
   if (!response.ok) {
     throw new CreateTicketApiError(await readErrorMessage(response));
   }
+}
+
+/** Fetches the server-owned allowlist of DATABASE targets. Throws on a non-ok response or network failure. */
+export async function fetchDbTargets(): Promise<DbTarget[]> {
+  const response = await fetch("/api/tickets/db-targets");
+  if (!response.ok) {
+    throw new Error(DB_TARGETS_ERROR_MESSAGE);
+  }
+  const body: { data: DbTarget[] } = await response.json();
+  return body.data;
 }
 
 async function readErrorMessage(response: Response): Promise<string> {
