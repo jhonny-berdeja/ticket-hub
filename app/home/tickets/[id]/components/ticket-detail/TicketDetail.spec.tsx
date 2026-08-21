@@ -18,7 +18,7 @@ vi.mock("@/common/use-current-user/use-current-user.service", () => ({
 const DATABASE_TICKET: TicketDetails = {
   id: 1,
   number: "TK-1",
-  department: "Datacenter",
+  department: "Base de datos",
   subject: "Read a row",
   status: "CREATED",
   description: "Need to read one row",

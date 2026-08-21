@@ -10,7 +10,7 @@ import {
 import { fetchAssignableUsers } from "@/app/home/tickets/tickets.api";
 import type { AssignableUser, DbTarget } from "@/app/home/tickets/tickets.dto";
 
-const FIXED_DEPARTMENT = "Datacenter";
+const FIXED_DEPARTMENT = "Base de datos";
 const NO_ASSIGNEE_MESSAGE = "Ingresá a quién asignar el ticket.";
 const NO_DB_TARGET_MESSAGE = "Seleccioná una base de datos.";
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
@@ -144,7 +144,7 @@ export default function CreateDatabaseTicketForm() {
             htmlFor="datacenter"
             className="text-sm font-medium text-gray-700"
           >
-            Datacenter
+            Departamento
           </label>
           <input
             id="datacenter"

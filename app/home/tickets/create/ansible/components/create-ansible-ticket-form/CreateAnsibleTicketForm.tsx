@@ -9,7 +9,7 @@ import {
 import { fetchAssignableUsers } from "@/app/home/tickets/tickets.api";
 import type { AssignableUser } from "@/app/home/tickets/tickets.dto";
 
-const FIXED_DEPARTMENT = "Datacenter";
+const FIXED_DEPARTMENT = "Centro de datos";
 const NO_ASSIGNEE_MESSAGE = "Ingresá a quién asignar el ticket.";
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 const TICKETS_LIST_PATH = "/home/tickets/list";
@@ -108,7 +108,7 @@ export default function CreateAnsibleTicketForm() {
             htmlFor="datacenter"
             className="text-sm font-medium text-gray-700"
           >
-            Datacenter
+            Departamento
           </label>
           <input
             id="datacenter"
@@ -210,7 +210,7 @@ export default function CreateAnsibleTicketForm() {
             disabled={isSubmitting}
             className="flex-1 rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-60"
           >
-            {isSubmitting ? "Creando..." : "Crear ticket datacenter"}
+            {isSubmitting ? "Creando..." : "Crear ticket centro de datos"}
           </button>
         </div>
       </form>

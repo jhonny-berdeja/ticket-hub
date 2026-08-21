@@ -56,7 +56,7 @@ export default function TicketDetail({ ticket }: TicketDetailProps) {
           {ticket.status}
         </div>
         <div>
-          <span className="font-medium text-gray-700">Datacenter: </span>
+          <span className="font-medium text-gray-700">Departamento: </span>
           {ticket.department}
         </div>
         <div>

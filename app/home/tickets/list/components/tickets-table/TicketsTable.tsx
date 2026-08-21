@@ -36,7 +36,7 @@ export default function TicketsTable({
                 Número
               </th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">
-                Datacenter
+                Departamento
               </th>
               <th className="px-4 py-3 text-left font-medium text-gray-500">
                 Asunto
