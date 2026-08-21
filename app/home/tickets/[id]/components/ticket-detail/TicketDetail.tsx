@@ -92,12 +92,6 @@ export default function TicketDetail({ ticket }: TicketDetailProps) {
               {ticket.dbName}
             </div>
             <div>
-              <span className="font-medium text-gray-700">
-                Tipo de operación:{" "}
-              </span>
-              {ticket.operationType}
-            </div>
-            <div>
               <span className="font-medium text-gray-700">SQL:</span>
               <pre className="mt-1 whitespace-pre-wrap rounded-lg bg-gray-100 p-3 font-mono text-xs text-gray-700">
                 {ticket.sqlCode}

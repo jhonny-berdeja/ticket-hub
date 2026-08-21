@@ -1,7 +1,5 @@
 export type TicketType = "ANSIBLE" | "DATABASE";
 
-export type OperationType = "LECTURA" | "ESCRITURA";
-
 /** Allowlisted DATABASE target — fetched from `GET /tickets/db-targets`, never hardcoded (see infra design's "anti-drift" note). */
 export interface DbTarget {
   namespace: string;
@@ -22,6 +20,5 @@ export interface TicketDetails {
   namespace: string | null;
   deployment: string | null;
   dbName: string | null;
-  operationType: OperationType | null;
   sqlCode: string | null;
 }

@@ -28,18 +28,16 @@ const DATABASE_TICKET: TicketDetails = {
   namespace: "pcbox-api",
   deployment: "pcbox-db-deploy",
   dbName: "pcbox-db",
-  operationType: "LECTURA",
   sqlCode: "SELECT * FROM users;",
 };
 
 describe("TicketDetail — DATABASE ticketType", () => {
-  it("renders all 5 DATABASE fields verbatim before any approve action", () => {
+  it("renders all 4 DATABASE fields verbatim before any approve action", () => {
     render(<TicketDetail ticket={DATABASE_TICKET} />);
 
     expect(screen.getByText("pcbox-api")).toBeInTheDocument();
     expect(screen.getByText("pcbox-db-deploy")).toBeInTheDocument();
     expect(screen.getByText("pcbox-db")).toBeInTheDocument();
-    expect(screen.getByText("LECTURA")).toBeInTheDocument();
     expect(screen.getByText("SELECT * FROM users;")).toBeInTheDocument();
   });
 
@@ -51,7 +49,6 @@ describe("TicketDetail — DATABASE ticketType", () => {
       namespace: null,
       deployment: null,
       dbName: null,
-      operationType: null,
       sqlCode: null,
     };
 
@@ -59,6 +56,6 @@ describe("TicketDetail — DATABASE ticketType", () => {
 
     expect(screen.getByText("- hosts: all")).toBeInTheDocument();
     expect(screen.queryByText("pcbox-api")).not.toBeInTheDocument();
-    expect(screen.queryByText("LECTURA")).not.toBeInTheDocument();
+    expect(screen.queryByText("SELECT * FROM users;")).not.toBeInTheDocument();
   });
 });
