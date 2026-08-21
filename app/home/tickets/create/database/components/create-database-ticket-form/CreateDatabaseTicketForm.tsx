@@ -30,8 +30,8 @@ const TICKETS_LIST_PATH = "/home/tickets/list";
  * fetch, promoted there since CreateAnsibleTicketForm needs the same
  * list.
  *
- * Dedicated DATABASE-only form: always submits `ticketType: "DATABASE"`,
- * no type selector. The db-targets dropdown is fed from
+ * Dedicated DATABASE-only form: posts to /api/tickets/database, no
+ * type selector. The db-targets dropdown is fed from
  * `GET /tickets/db-targets`, never hardcoded here -- pcbox-api's
  * allowlist stays the single source of truth (see the
  * manage-database-sql-ticket design's "anti-drift" note). See
@@ -113,7 +113,6 @@ export default function CreateDatabaseTicketForm() {
         department: FIXED_DEPARTMENT,
         subject,
         description,
-        ticketType: "DATABASE",
         namespace: selectedTarget.namespace,
         deployment: selectedTarget.deployment,
         dbName: selectedTarget.dbName,

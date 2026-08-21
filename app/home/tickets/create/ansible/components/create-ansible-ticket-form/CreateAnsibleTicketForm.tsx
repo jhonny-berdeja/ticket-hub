@@ -28,8 +28,8 @@ const TICKETS_LIST_PATH = "/home/tickets/list";
  * fetch, promoted there since CreateDatabaseTicketForm needs the same
  * list.
  *
- * Dedicated ANSIBLE-only form: always submits `ticketType: "ANSIBLE"`,
- * no type selector. See CreateDatabaseTicketForm for the DATABASE
+ * Dedicated ANSIBLE-only form: posts to /api/tickets/ansible, no type
+ * selector. See CreateDatabaseTicketForm for the DATABASE
  * counterpart -- they used to be one form with a branch, split so each
  * route only carries the fields it actually needs.
  */
@@ -80,7 +80,6 @@ export default function CreateAnsibleTicketForm() {
         department: FIXED_DEPARTMENT,
         subject,
         description,
-        ticketType: "ANSIBLE",
         codeAnsible: codeAnsible === "" ? undefined : codeAnsible,
       });
 

@@ -5,7 +5,6 @@ interface CreateAnsibleTicketPayload {
   department: string;
   subject: string;
   description: string;
-  ticketType: "ANSIBLE";
   codeAnsible?: string;
 }
 
@@ -16,7 +15,7 @@ export class CreateTicketApiError extends Error {}
 export async function createTicket(
   payload: CreateAnsibleTicketPayload,
 ): Promise<void> {
-  const response = await fetch("/api/tickets", {
+  const response = await fetch("/api/tickets/ansible", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

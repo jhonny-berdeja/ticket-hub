@@ -9,7 +9,6 @@ interface CreateDatabaseTicketPayload {
   department: string;
   subject: string;
   description: string;
-  ticketType: "DATABASE";
   namespace: string;
   deployment: string;
   dbName: string;
@@ -23,7 +22,7 @@ export class CreateTicketApiError extends Error {}
 export async function createTicket(
   payload: CreateDatabaseTicketPayload,
 ): Promise<void> {
-  const response = await fetch("/api/tickets", {
+  const response = await fetch("/api/tickets/database", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
