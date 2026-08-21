@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useCurrentUser } from "@/common/use-current-user/use-current-user";
 import { isAdmin } from "@/common/use-current-user/use-current-user.service";
@@ -8,7 +7,6 @@ import { approveTicket } from "@/app/home/tickets/[id]/components/ticket-detail/
 import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
 
 const APPROVE_ERROR_MESSAGE = "No se pudo aprobar el ticket. Intentá de nuevo.";
-const TICKETS_LIST_PATH = "/home/tickets/list";
 
 interface TicketDetailProps {
   ticket: TicketDetails;
@@ -19,16 +17,17 @@ interface TicketDetailProps {
  * TicketDetailsModal: no more "fixed inset-0" wrapper or X close
  * button, this is a real page now, not a dialog. Takes `ticket` as
  * its only prop (its direct parent, [id]/page.tsx, already resolved
- * it). Determines canApprove for itself, same reasoning as before.
- * On successful approve, navigates back to the list instead of
- * relying on a reactive lastApprovedTicket refetch trick -- there's
- * no sibling list mounted at the same time to react to anymore.
+ * it), and seeds local state from it so a successful approve can
+ * replace it with the updated ticket the backend returns (new
+ * status, execution `response`, etc) -- the same page just
+ * re-renders in place, no navigation, no page reload. Determines
+ * canApprove for itself, same reasoning as before.
  */
-export default function TicketDetail({ ticket }: TicketDetailProps) {
-  const router = useRouter();
+export default function TicketDetail({ ticket: initialTicket }: TicketDetailProps) {
   const { user } = useCurrentUser();
   const canApprove = isAdmin(user);
 
+  const [ticket, setTicket] = useState<TicketDetails>(initialTicket);
   const [error, setError] = useState<string | null>(null);
   const [isApproving, setIsApproving] = useState(false);
 
@@ -36,10 +35,11 @@ export default function TicketDetail({ ticket }: TicketDetailProps) {
     setError(null);
     setIsApproving(true);
     try {
-      await approveTicket(ticket.id);
-      router.push(TICKETS_LIST_PATH);
+      const updatedTicket = await approveTicket(ticket.id);
+      setTicket(updatedTicket);
     } catch {
       setError(APPROVE_ERROR_MESSAGE);
+    } finally {
       setIsApproving(false);
     }
   }

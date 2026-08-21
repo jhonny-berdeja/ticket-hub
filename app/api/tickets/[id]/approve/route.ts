@@ -2,7 +2,14 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 const COOKIE_NAME = "ticket-hub-token";
-const REQUEST_TIMEOUT_MS = 10_000;
+/**
+ * 4 minutes plus a margin above every downstream hop: approving a
+ * ticket runs an Ansible playbook (or SQL) synchronously through
+ * ticket-hub-api and pcbox-api before this request resolves, and
+ * that execution alone can take up to 4 minutes
+ * (pcbox-api's AnsibleConnector.PLAYBOOK_TIMEOUT_MS).
+ */
+const REQUEST_TIMEOUT_MS = 260_000;
 
 const UNAUTHENTICATED_STATUS = { status: 401 } as const;
 const SERVICE_UNAVAILABLE_STATUS = { status: 500 } as const;

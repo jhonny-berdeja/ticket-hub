@@ -14,13 +14,14 @@ const FIXED_DEPARTMENT = "Base de datos";
 const NO_ASSIGNEE_MESSAGE = "Ingresá a quién asignar el ticket.";
 const NO_DB_TARGET_MESSAGE = "Seleccioná una base de datos.";
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
-const TICKETS_LIST_PATH = "/home/tickets/list";
+const DATABASE_TICKETS_LIST_PATH = "/home/tickets/list/database";
 
 /**
  * No Context: this is a real page now, not a modal. On successful
- * create there's no onCreated to call -- the list re-fetches on its
- * own when we navigate back to it, so this just pushes the route.
- * "Cancelar" does the same navigation, taking over the job the old X
+ * create there's no onCreated to call -- instead we push straight to
+ * the created ticket's own detail page so the user can see how it
+ * came out. "Cancelar" goes back to this form's own list
+ * (`/home/tickets/list/database`), taking over the job the old X
  * close button used to do.
  *
  * `assignee` is a dropdown fed by `GET /tickets/assignable-users`
@@ -108,7 +109,7 @@ export default function CreateDatabaseTicketForm() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await createTicket({
+      const createdTicket = await createTicket({
         assignee,
         department: FIXED_DEPARTMENT,
         subject,
@@ -119,7 +120,7 @@ export default function CreateDatabaseTicketForm() {
         sqlCode,
       });
 
-      router.push(TICKETS_LIST_PATH);
+      router.push(`/home/tickets/${createdTicket.id}`);
     } catch (submitError) {
       setError(
         submitError instanceof CreateTicketApiError
@@ -259,7 +260,7 @@ export default function CreateDatabaseTicketForm() {
         <div className="mt-2 flex gap-3">
           <button
             type="button"
-            onClick={() => router.push(TICKETS_LIST_PATH)}
+            onClick={() => router.push(DATABASE_TICKETS_LIST_PATH)}
             className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
             Cancelar

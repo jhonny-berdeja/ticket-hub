@@ -1,3 +1,5 @@
+import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
+
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 
 interface CreateAnsibleTicketPayload {
@@ -11,10 +13,10 @@ interface CreateAnsibleTicketPayload {
 /** Thrown for a non-ok response, carrying the server's message (or the generic fallback). */
 export class CreateTicketApiError extends Error {}
 
-/** Creates an ANSIBLE ticket. Rejects with CreateTicketApiError on a non-ok response; any other rejection means a network failure. */
+/** Creates an ANSIBLE ticket and returns the created ticket. Rejects with CreateTicketApiError on a non-ok response; any other rejection means a network failure. */
 export async function createTicket(
   payload: CreateAnsibleTicketPayload,
-): Promise<void> {
+): Promise<TicketDetails> {
   const response = await fetch("/api/tickets/ansible", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -24,6 +26,9 @@ export async function createTicket(
   if (!response.ok) {
     throw new CreateTicketApiError(await readErrorMessage(response));
   }
+
+  const body: { data: TicketDetails } = await response.json();
+  return body.data;
 }
 
 async function readErrorMessage(response: Response): Promise<string> {

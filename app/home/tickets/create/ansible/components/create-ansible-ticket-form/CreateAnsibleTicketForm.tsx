@@ -12,14 +12,15 @@ import type { AssignableUser } from "@/app/home/tickets/tickets.dto";
 const FIXED_DEPARTMENT = "Centro de datos";
 const NO_ASSIGNEE_MESSAGE = "Ingresá a quién asignar el ticket.";
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
-const TICKETS_LIST_PATH = "/home/tickets/list";
+const ANSIBLE_TICKETS_LIST_PATH = "/home/tickets/list/ansible";
 
 /**
  * No Context: this is a real page now, not a modal. On successful
- * create there's no onCreated to call -- the list re-fetches on its
- * own when we navigate back to it, so this just pushes the route.
- * "Cancelar" does the same navigation, taking over the job the old X
- * close button used to do.
+ * create there's no onCreated to call -- instead we push straight to
+ * the created ticket's own detail page so the user can see how it
+ * came out. "Cancelar" goes back to this form's own list
+ * (`/home/tickets/list/ansible`), taking over the job the old X close
+ * button used to do.
  *
  * `assignee` is a dropdown fed by `GET /tickets/assignable-users`
  * (internal ADMIN users on ticket-hub) -- the submitted value is the
@@ -75,7 +76,7 @@ export default function CreateAnsibleTicketForm() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await createTicket({
+      const createdTicket = await createTicket({
         assignee,
         department: FIXED_DEPARTMENT,
         subject,
@@ -83,7 +84,7 @@ export default function CreateAnsibleTicketForm() {
         codeAnsible: codeAnsible === "" ? undefined : codeAnsible,
       });
 
-      router.push(TICKETS_LIST_PATH);
+      router.push(`/home/tickets/${createdTicket.id}`);
     } catch (submitError) {
       setError(
         submitError instanceof CreateTicketApiError
@@ -199,7 +200,7 @@ export default function CreateAnsibleTicketForm() {
         <div className="mt-2 flex gap-3">
           <button
             type="button"
-            onClick={() => router.push(TICKETS_LIST_PATH)}
+            onClick={() => router.push(ANSIBLE_TICKETS_LIST_PATH)}
             className="flex-1 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
           >
             Cancelar

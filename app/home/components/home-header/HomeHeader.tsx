@@ -58,7 +58,7 @@ export default function HomeHeader() {
   return (
     <>
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 bg-white px-6 py-4">
-        <div />
+        <h1 className="text-2xl font-semibold text-gray-900">Ticketera</h1>
 
         <div className="flex items-center gap-3">
           <form onSubmit={(event) => void handleSearch(event)} className="flex items-center gap-2">

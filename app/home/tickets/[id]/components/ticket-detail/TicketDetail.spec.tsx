@@ -1,19 +1,26 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import TicketDetail from "./TicketDetail";
+import { approveTicket } from "./ticket-detail.api";
 import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
-
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}));
 
 vi.mock("@/common/use-current-user/use-current-user", () => ({
   useCurrentUser: () => ({ user: { apps: { application: { roles: [] } } } }),
 }));
 
+const isAdminMock = vi.fn().mockReturnValue(false);
 vi.mock("@/common/use-current-user/use-current-user.service", () => ({
-  isAdmin: () => false,
+  isAdmin: () => isAdminMock(),
 }));
+
+vi.mock("./ticket-detail.api", () => ({
+  approveTicket: vi.fn(),
+}));
+
+beforeEach(() => {
+  isAdminMock.mockReturnValue(false);
+});
 
 const DATABASE_TICKET: TicketDetails = {
   id: 1,
@@ -57,5 +64,50 @@ describe("TicketDetail — DATABASE ticketType", () => {
     expect(screen.getByText("- hosts: all")).toBeInTheDocument();
     expect(screen.queryByText("pcbox-api")).not.toBeInTheDocument();
     expect(screen.queryByText("SELECT * FROM users;")).not.toBeInTheDocument();
+  });
+});
+
+describe("TicketDetail — approve flow", () => {
+  beforeEach(() => {
+    isAdminMock.mockReturnValue(true);
+    vi.mocked(approveTicket).mockReset();
+  });
+
+  it("replaces the ticket in place with the updated one after a successful approve, without navigating", async () => {
+    const updatedTicket: TicketDetails = {
+      ...DATABASE_TICKET,
+      status: "APPROVED",
+      response: "Query executed successfully",
+    };
+    vi.mocked(approveTicket).mockResolvedValue(updatedTicket);
+    const user = userEvent.setup();
+
+    render(<TicketDetail ticket={DATABASE_TICKET} />);
+    await user.click(screen.getByRole("button", { name: /aprobar/i }));
+
+    expect(approveTicket).toHaveBeenCalledWith(DATABASE_TICKET.id);
+    expect(await screen.findByText("APPROVED")).toBeInTheDocument();
+    expect(
+      screen.getByText("Query executed successfully"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /aprobar/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows an error and keeps the original ticket when approve fails", async () => {
+    vi.mocked(approveTicket).mockRejectedValue(new Error("boom"));
+    const user = userEvent.setup();
+
+    render(<TicketDetail ticket={DATABASE_TICKET} />);
+    await user.click(screen.getByRole("button", { name: /aprobar/i }));
+
+    expect(
+      await screen.findByText(
+        "No se pudo aprobar el ticket. Intentá de nuevo.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("CREATED")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /aprobar/i })).toBeEnabled();
   });
 });

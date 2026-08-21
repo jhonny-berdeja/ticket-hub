@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import CreateDatabaseTicketForm from "./CreateDatabaseTicketForm";
 
+const pushMock = vi.fn();
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: pushMock }),
 }));
 
 const DB_TARGETS = [
@@ -30,6 +33,12 @@ function mockTicketsFetch() {
         json: () => Promise.resolve({ data: ASSIGNABLE_USERS }),
       });
     }
+    if (url === "/api/tickets/database") {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: { id: 9 } }),
+      });
+    }
     return Promise.resolve({
       ok: false,
       json: () => Promise.resolve({}),
@@ -37,8 +46,25 @@ function mockTicketsFetch() {
   });
 }
 
+async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
+  await screen.findByRole("option", { name: /ticket-hub-db/i });
+  await user.selectOptions(
+    screen.getByLabelText(/asignar a/i),
+    "ana.gomez@example.com",
+  );
+  await user.selectOptions(screen.getByLabelText(/base de datos/i), "0");
+  await user.type(screen.getByLabelText(/asunto/i), "Corregir registro");
+  await user.type(
+    screen.getByLabelText(/descripción/i),
+    "Hay un registro duplicado",
+  );
+  await user.type(screen.getByLabelText(/sql/i), "SELECT 1;");
+  await user.click(screen.getByRole("button", { name: /crear ticket/i }));
+}
+
 describe("CreateDatabaseTicketForm", () => {
   beforeEach(() => {
+    pushMock.mockReset();
     vi.stubGlobal("fetch", mockTicketsFetch());
   });
 
@@ -91,5 +117,25 @@ describe("CreateDatabaseTicketForm", () => {
     const sqlTextarea = screen.getByLabelText(/sql/i);
     expect(sqlTextarea).toHaveAttribute("maxlength", "5000");
     expect(screen.queryByLabelText(/código yaml/i)).not.toBeInTheDocument();
+  });
+
+  it("navigates to the created ticket's own detail page after a successful submit", async () => {
+    const user = userEvent.setup();
+    render(<CreateDatabaseTicketForm />);
+
+    await fillAndSubmit(user);
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith("/home/tickets/9");
+    });
+  });
+
+  it("Cancelar navigates to the DATABASE list, not the deleted general list", async () => {
+    const user = userEvent.setup();
+    render(<CreateDatabaseTicketForm />);
+
+    await user.click(screen.getByRole("button", { name: /cancelar/i }));
+
+    expect(pushMock).toHaveBeenCalledWith("/home/tickets/list/database");
   });
 });

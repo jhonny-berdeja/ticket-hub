@@ -7,7 +7,7 @@ import { fetchTickets } from "@/app/home/tickets/tickets.api";
 import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
 
 const LOAD_ERROR_MESSAGE = "No se pudo cargar la lista de tickets.";
-const TICKETS_LIST_PATH = "/home/tickets/list";
+const HOME_PATH = "/home";
 
 interface TicketDetailPageProps {
   params: Promise<{ id: string }>;
@@ -73,10 +73,10 @@ export default function TicketDetailPage({ params }: TicketDetailPageProps) {
       <div className="flex flex-1 flex-col gap-6 p-6">
         <p className="text-sm text-gray-500">Ticket no encontrado.</p>
         <Link
-          href={TICKETS_LIST_PATH}
+          href={HOME_PATH}
           className="text-sm font-medium text-gray-900 hover:underline"
         >
-          Volver a la lista
+          Volver al panel
         </Link>
       </div>
     );

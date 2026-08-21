@@ -1,4 +1,4 @@
-import type { DbTarget } from "@/app/home/tickets/tickets.dto";
+import type { DbTarget, TicketDetails } from "@/app/home/tickets/tickets.dto";
 
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 const DB_TARGETS_ERROR_MESSAGE =
@@ -18,10 +18,10 @@ interface CreateDatabaseTicketPayload {
 /** Thrown for a non-ok response, carrying the server's message (or the generic fallback). */
 export class CreateTicketApiError extends Error {}
 
-/** Creates a DATABASE ticket. Rejects with CreateTicketApiError on a non-ok response; any other rejection means a network failure. */
+/** Creates a DATABASE ticket and returns the created ticket. Rejects with CreateTicketApiError on a non-ok response; any other rejection means a network failure. */
 export async function createTicket(
   payload: CreateDatabaseTicketPayload,
-): Promise<void> {
+): Promise<TicketDetails> {
   const response = await fetch("/api/tickets/database", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -31,6 +31,9 @@ export async function createTicket(
   if (!response.ok) {
     throw new CreateTicketApiError(await readErrorMessage(response));
   }
+
+  const body: { data: TicketDetails } = await response.json();
+  return body.data;
 }
 
 /** Fetches the server-owned allowlist of DATABASE targets. Throws on a non-ok response or network failure. */
