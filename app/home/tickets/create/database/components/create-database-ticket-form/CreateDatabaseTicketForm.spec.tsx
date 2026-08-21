@@ -36,7 +36,7 @@ function mockTicketsFetch() {
     if (url === "/api/tickets/database") {
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ data: { id: 9 } }),
+        json: () => Promise.resolve({ data: { id: 9, number: "DB-9" } }),
       });
     }
     return Promise.resolve({
@@ -119,14 +119,14 @@ describe("CreateDatabaseTicketForm", () => {
     expect(screen.queryByLabelText(/código yaml/i)).not.toBeInTheDocument();
   });
 
-  it("navigates to the created ticket's own detail page after a successful submit", async () => {
+  it("navigates to the created ticket's own detail page by number, not id, after a successful submit", async () => {
     const user = userEvent.setup();
     render(<CreateDatabaseTicketForm />);
 
     await fillAndSubmit(user);
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith("/home/tickets/9");
+      expect(pushMock).toHaveBeenCalledWith("/home/tickets/DB-9");
     });
   });
 

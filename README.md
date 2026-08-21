@@ -16,7 +16,7 @@ Este proyecto es el frontend de la ticketera del ecosistema jtagram. Permite cre
 
 **`/home/tickets/create`** — Formulario para crear un nuevo ticket. Es una página de layout normal (no un modal), con el formulario `CreateTicketForm` dentro de una tarjeta.
 
-**`/home/tickets/[id]`** — Detalle de un ticket puntual. No existe un endpoint de backend para traer un ticket por id, así que esta página reutiliza el mismo fetch que el listado (`fetchTickets`) y busca el ticket correspondiente en el cliente según el `id` de la ruta. Contempla los estados de carga, error de carga y ticket no encontrado.
+**`/home/tickets/[number]`** — Detalle de un ticket puntual. `datacenter_tickets` y `database_tickets` tienen cada una su propia secuencia de `id` interno, así que un lookup por `id` es ambiguo (ambas tablas pueden tener un ticket con el mismo `id`). Por eso esta ruta identifica al ticket por su `number` de display, único (`DC-1`, `DB-1`), y trae ese ticket puntual con `GET /tickets/by-number/:displayNumber` en vez de traer el listado completo y buscarlo en el cliente. Contempla los estados de carga, error de carga y ticket no encontrado.
 
 ## ¿Qué variables de entorno necesito?
 

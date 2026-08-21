@@ -120,7 +120,7 @@ export default function CreateDatabaseTicketForm() {
         sqlCode,
       });
 
-      router.push(`/home/tickets/${createdTicket.id}`);
+      router.push(`/home/tickets/${createdTicket.number}`);
     } catch (submitError) {
       setError(
         submitError instanceof CreateTicketApiError

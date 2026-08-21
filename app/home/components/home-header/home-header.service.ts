@@ -1,4 +1,4 @@
-import { TicketNotFoundError } from "@/app/home/components/home-header/home-header.api";
+import { TicketNotFoundError } from "@/app/home/tickets/tickets.api";
 
 const TICKET_NUMBER_PATTERN = /^(DC|DB)-\d+$/;
 const TICKET_NOT_FOUND_MESSAGE = "No se encontró ese ticket.";

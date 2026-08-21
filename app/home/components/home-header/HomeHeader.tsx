@@ -2,15 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  logout,
-  searchTicketByNumber,
-} from "@/app/home/components/home-header/home-header.api";
+import { logout } from "@/app/home/components/home-header/home-header.api";
 import {
   INVALID_TICKET_NUMBER_MESSAGE,
   parseTicketNumber,
   resolveSearchErrorMessage,
 } from "@/app/home/components/home-header/home-header.service";
+import { searchTicketByNumber } from "@/app/home/tickets/tickets.api";
 
 /**
  * Shared chrome for every page under /home: the header (ticket search,
@@ -47,7 +45,7 @@ export default function HomeHeader() {
     setIsSearching(true);
     try {
       const ticket = await searchTicketByNumber(ticketNumber);
-      router.push(`/home/tickets/${ticket.id}`);
+      router.push(`/home/tickets/${ticket.number}`);
     } catch (error) {
       setSearchError(resolveSearchErrorMessage(error));
     } finally {

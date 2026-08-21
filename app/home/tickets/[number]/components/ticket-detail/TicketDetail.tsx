@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useCurrentUser } from "@/common/use-current-user/use-current-user";
 import { isAdmin } from "@/common/use-current-user/use-current-user.service";
-import { approveTicket } from "@/app/home/tickets/[id]/components/ticket-detail/ticket-detail.api";
+import { approveTicket } from "@/app/home/tickets/[number]/components/ticket-detail/ticket-detail.api";
 import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
 
 const APPROVE_ERROR_MESSAGE = "No se pudo aprobar el ticket. Intentá de nuevo.";
@@ -16,7 +16,7 @@ interface TicketDetailProps {
  * Shows the ticket's full detail, adapted from the old
  * TicketDetailsModal: no more "fixed inset-0" wrapper or X close
  * button, this is a real page now, not a dialog. Takes `ticket` as
- * its only prop (its direct parent, [id]/page.tsx, already resolved
+ * its only prop (its direct parent, [number]/page.tsx, already resolved
  * it), and seeds local state from it so a successful approve can
  * replace it with the updated ticket the backend returns (new
  * status, execution `response`, etc) -- the same page just

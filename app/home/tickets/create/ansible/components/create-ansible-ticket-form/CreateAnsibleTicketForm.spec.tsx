@@ -25,7 +25,7 @@ function mockTicketsFetch() {
     if (url === "/api/tickets/ansible") {
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ data: { id: 7 } }),
+        json: () => Promise.resolve({ data: { id: 7, number: "DC-7" } }),
       });
     }
     return Promise.resolve({
@@ -92,14 +92,14 @@ describe("CreateAnsibleTicketForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("navigates to the created ticket's own detail page after a successful submit", async () => {
+  it("navigates to the created ticket's own detail page by number, not id, after a successful submit", async () => {
     const user = userEvent.setup();
     render(<CreateAnsibleTicketForm />);
 
     await fillAndSubmit(user);
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith("/home/tickets/7");
+      expect(pushMock).toHaveBeenCalledWith("/home/tickets/DC-7");
     });
   });
 

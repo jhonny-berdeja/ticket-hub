@@ -63,7 +63,7 @@ export default function TicketsTable({
               tickets.map((ticket) => (
                 <tr
                   key={ticket.id}
-                  onClick={() => router.push(`/home/tickets/${ticket.id}`)}
+                  onClick={() => router.push(`/home/tickets/${ticket.number}`)}
                   className="cursor-pointer hover:bg-gray-50"
                 >
                   <td className="px-4 py-3 text-gray-900">{ticket.number}</td>

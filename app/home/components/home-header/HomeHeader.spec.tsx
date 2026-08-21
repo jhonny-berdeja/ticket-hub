@@ -13,6 +13,9 @@ const searchTicketByNumberMock = vi.fn();
 
 vi.mock("@/app/home/components/home-header/home-header.api", () => ({
   logout: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@/app/home/tickets/tickets.api", () => ({
   searchTicketByNumber: (ticketNumber: string) =>
     searchTicketByNumberMock(ticketNumber),
   TicketNotFoundError: class TicketNotFoundError extends Error {},
@@ -65,8 +68,8 @@ describe("HomeHeader search", () => {
     expect(searchTicketByNumberMock).not.toHaveBeenCalled();
   });
 
-  it("sends the full normalized DC-<n> string, not a bare number, and navigates on success", async () => {
-    searchTicketByNumberMock.mockResolvedValue({ id: 1 });
+  it("sends the full normalized DC-<n> string, not a bare number, and navigates by ticket number on success", async () => {
+    searchTicketByNumberMock.mockResolvedValue({ id: 1, number: "DC-1" });
     const user = userEvent.setup();
     render(<HomeHeader />);
 
@@ -74,12 +77,15 @@ describe("HomeHeader search", () => {
 
     expect(searchTicketByNumberMock).toHaveBeenCalledWith("DC-1");
     await waitFor(() =>
-      expect(pushMock).toHaveBeenCalledWith("/home/tickets/1"),
+      expect(pushMock).toHaveBeenCalledWith("/home/tickets/DC-1"),
     );
   });
 
-  it("sends the full normalized DB-<n> string for a database ticket", async () => {
-    searchTicketByNumberMock.mockResolvedValue({ id: 42 });
+  it("sends the full normalized DB-<n> string for a database ticket and navigates by ticket number, not id", async () => {
+    // Same internal id as the DC-1 ticket above -- datacenter_tickets and
+    // database_tickets each have their own id sequence, so navigating by
+    // id would collide. Navigation must use `number` instead.
+    searchTicketByNumberMock.mockResolvedValue({ id: 1, number: "DB-42" });
     const user = userEvent.setup();
     render(<HomeHeader />);
 
@@ -87,7 +93,7 @@ describe("HomeHeader search", () => {
 
     expect(searchTicketByNumberMock).toHaveBeenCalledWith("DB-42");
     await waitFor(() =>
-      expect(pushMock).toHaveBeenCalledWith("/home/tickets/42"),
+      expect(pushMock).toHaveBeenCalledWith("/home/tickets/DB-42"),
     );
   });
 });

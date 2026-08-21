@@ -84,7 +84,7 @@ export default function CreateAnsibleTicketForm() {
         codeAnsible: codeAnsible === "" ? undefined : codeAnsible,
       });
 
-      router.push(`/home/tickets/${createdTicket.id}`);
+      router.push(`/home/tickets/${createdTicket.number}`);
     } catch (submitError) {
       setError(
         submitError instanceof CreateTicketApiError
