@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import CreateTicketForm from "./CreateTicketForm";
+import CreateDatabaseTicketForm from "./CreateDatabaseTicketForm";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -19,7 +18,7 @@ function mockDbTargetsFetch() {
   });
 }
 
-describe("CreateTicketForm — DATABASE ticketType", () => {
+describe("CreateDatabaseTicketForm", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", mockDbTargetsFetch());
   });
@@ -29,13 +28,7 @@ describe("CreateTicketForm — DATABASE ticketType", () => {
   });
 
   it("fetches the allowlisted db-targets from GET /tickets/db-targets and renders them as dropdown options", async () => {
-    const user = userEvent.setup();
-    render(<CreateTicketForm />);
-
-    await user.selectOptions(
-      screen.getByLabelText(/tipo de ticket/i),
-      "DATABASE",
-    );
+    render(<CreateDatabaseTicketForm />);
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith("/api/tickets/db-targets");
@@ -51,16 +44,10 @@ describe("CreateTicketForm — DATABASE ticketType", () => {
     expect(targetSelect).toBeInTheDocument();
   });
 
-  it("shows the SQL textarea (capped at 5000 chars) and hides the YAML textarea once DATABASE is selected", async () => {
-    const user = userEvent.setup();
-    render(<CreateTicketForm />);
+  it("shows the SQL textarea (capped at 5000 chars) and no YAML textarea", () => {
+    render(<CreateDatabaseTicketForm />);
 
-    await user.selectOptions(
-      screen.getByLabelText(/tipo de ticket/i),
-      "DATABASE",
-    );
-
-    const sqlTextarea = await screen.findByLabelText(/sql/i);
+    const sqlTextarea = screen.getByLabelText(/sql/i);
     expect(sqlTextarea).toHaveAttribute("maxlength", "5000");
     expect(screen.queryByLabelText(/código yaml/i)).not.toBeInTheDocument();
   });

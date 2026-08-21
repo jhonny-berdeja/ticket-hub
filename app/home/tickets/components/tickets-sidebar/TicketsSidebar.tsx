@@ -9,7 +9,10 @@ export default function TicketsSidebar() {
   return (
     <aside className="flex w-64 shrink-0 flex-col gap-1 border-r border-gray-200 bg-white p-4">
       <NavLink href="/home/tickets/list">Ver tickets</NavLink>
-      <NavLink href="/home/tickets/create">Crear ticket</NavLink>
+      <NavLink href="/home/tickets/create/ansible">Crear ticket Ansible</NavLink>
+      <NavLink href="/home/tickets/create/database">
+        Crear ticket Base de datos
+      </NavLink>
     </aside>
   );
 }
