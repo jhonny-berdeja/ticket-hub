@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import TicketsListView from "./TicketsListView";
 import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
@@ -39,23 +39,21 @@ const DATABASE_TICKET: TicketDetails = {
   sqlCode: "SELECT * FROM users;",
 };
 
-function mockTicketsFetch() {
+function mockTicketsFetch(ticket: TicketDetails) {
   return vi.fn().mockResolvedValue({
     ok: true,
-    json: () => Promise.resolve({ data: [ANSIBLE_TICKET, DATABASE_TICKET] }),
+    json: () => Promise.resolve({ data: [ticket] }),
   });
 }
 
 describe("TicketsListView", () => {
-  beforeEach(() => {
-    vi.stubGlobal("fetch", mockTicketsFetch());
-  });
-
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("shows only ANSIBLE (datacenter) tickets when ticketType=\"ANSIBLE\"", async () => {
+  it('fetches /api/tickets/ansible and shows the ANSIBLE ticket when ticketType="ANSIBLE"', async () => {
+    vi.stubGlobal("fetch", mockTicketsFetch(ANSIBLE_TICKET));
+
     render(<TicketsListView ticketType="ANSIBLE" title="Tickets Centro de Datos" />);
 
     expect(
@@ -63,10 +61,12 @@ describe("TicketsListView", () => {
     ).toBeInTheDocument();
 
     expect(await screen.findByText("DC-1")).toBeInTheDocument();
-    expect(screen.queryByText("DB-1")).not.toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/tickets/ansible");
   });
 
-  it("shows only DATABASE tickets when ticketType=\"DATABASE\"", async () => {
+  it('fetches /api/tickets/database and shows the DATABASE ticket when ticketType="DATABASE"', async () => {
+    vi.stubGlobal("fetch", mockTicketsFetch(DATABASE_TICKET));
+
     render(<TicketsListView ticketType="DATABASE" title="Tickets Base de Datos" />);
 
     expect(
@@ -74,14 +74,17 @@ describe("TicketsListView", () => {
     ).toBeInTheDocument();
 
     expect(await screen.findByText("DB-1")).toBeInTheDocument();
-    expect(screen.queryByText("DC-1")).not.toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/tickets/database");
   });
 
-  it("still fetches the shared /api/tickets endpoint, not a type-specific one", async () => {
+  it("never calls the merged /api/tickets endpoint", async () => {
+    vi.stubGlobal("fetch", mockTicketsFetch(ANSIBLE_TICKET));
+
     render(<TicketsListView ticketType="ANSIBLE" title="Tickets Centro de Datos" />);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith("/api/tickets");
+      expect(fetch).toHaveBeenCalledWith("/api/tickets/ansible");
     });
+    expect(fetch).not.toHaveBeenCalledWith("/api/tickets");
   });
 });

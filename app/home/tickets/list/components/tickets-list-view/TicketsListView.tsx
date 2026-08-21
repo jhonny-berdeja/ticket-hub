@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import TicketsTable from "@/app/home/tickets/list/components/tickets-table/TicketsTable";
-import { fetchTickets } from "@/app/home/tickets/tickets.api";
+import {
+  fetchAnsibleTickets,
+  fetchDatabaseTickets,
+} from "@/app/home/tickets/tickets.api";
 import type { TicketDetails, TicketType } from "@/app/home/tickets/tickets.dto";
 
 const LOAD_ERROR_MESSAGE = "No se pudo cargar la lista de tickets.";
@@ -14,11 +17,16 @@ interface TicketsListViewProps {
 
 /**
  * Shared by list/ansible/page.tsx and list/database/page.tsx -- both
- * fetch the exact same ticket list and only differ in which
- * ticketType they keep, so the fetch/filter/render logic lives here
- * once instead of duplicated per route. Promoted to list/'s own
+ * render the exact same table and only differ in which kind of
+ * ticket they fetch, so the fetch/render logic lives here once
+ * instead of duplicated per route. Promoted to list/'s own
  * components/ (not common/): both consumers stay inside the same
  * route family, per frontend-structure.md's promotion rule.
+ *
+ * `ticketType` picks which already-scoped endpoint to call
+ * (`GET /tickets/ansible` or `GET /tickets/database` on the backend,
+ * via their matching proxy routes) -- there is no more merged list to
+ * filter client-side, each response already contains only that kind.
  *
  * Self-contained like the old single list page: fetches the ticket
  * list itself and re-fetches on every mount, i.e. every navigation
@@ -36,7 +44,7 @@ export default function TicketsListView({
   useEffect(() => {
     let cancelled = false;
 
-    fetchTickets()
+    fetchTicketsFor(ticketType)
       .then((loadedTickets) => {
         if (cancelled) return;
         setTickets(loadedTickets);
@@ -52,21 +60,19 @@ export default function TicketsListView({
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  const filteredTickets = tickets.filter(
-    (ticket) => ticket.ticketType === ticketType,
-  );
+  }, [ticketType]);
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
       <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
 
-      <TicketsTable
-        tickets={filteredTickets}
-        isLoading={isLoading}
-        error={error}
-      />
+      <TicketsTable tickets={tickets} isLoading={isLoading} error={error} />
     </div>
   );
+}
+
+function fetchTicketsFor(ticketType: TicketType): Promise<TicketDetails[]> {
+  return ticketType === "ANSIBLE"
+    ? fetchAnsibleTickets()
+    : fetchDatabaseTickets();
 }

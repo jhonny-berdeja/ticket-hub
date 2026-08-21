@@ -3,11 +3,21 @@ import type {
   TicketDetails,
 } from "@/app/home/tickets/tickets.dto";
 
-/** Fetches the full ticket list. Throws on a non-ok response or network failure. */
-export async function fetchTickets(): Promise<TicketDetails[]> {
-  const response = await fetch("/api/tickets");
+/** Fetches only ANSIBLE (datacenter) tickets. Throws on a non-ok response or network failure. */
+export async function fetchAnsibleTickets(): Promise<TicketDetails[]> {
+  const response = await fetch("/api/tickets/ansible");
   if (!response.ok) {
-    throw new Error("Failed to load tickets");
+    throw new Error("Failed to load ansible tickets");
+  }
+  const body: { data: TicketDetails[] } = await response.json();
+  return body.data;
+}
+
+/** Fetches only DATABASE tickets. Throws on a non-ok response or network failure. */
+export async function fetchDatabaseTickets(): Promise<TicketDetails[]> {
+  const response = await fetch("/api/tickets/database");
+  if (!response.ok) {
+    throw new Error("Failed to load database tickets");
   }
   const body: { data: TicketDetails[] } = await response.json();
   return body.data;

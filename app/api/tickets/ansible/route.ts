@@ -17,6 +17,26 @@ const BACKEND_UNREACHABLE_MESSAGE = {
 } as const;
 const INVALID_BODY_MESSAGE = { message: "Invalid request body." } as const;
 
+/** Forwards to GET /tickets/ansible on the backend — the ANSIBLE-only list endpoint. */
+export async function GET() {
+  const apiUrl = process.env.TICKET_HUB_API_URL;
+  if (!apiUrl) {
+    return NextResponse.json(API_URL_MISSING_MESSAGE, SERVICE_UNAVAILABLE_STATUS);
+  }
+
+  const token = await readAuthToken();
+  if (!token) {
+    return NextResponse.json(NOT_AUTHENTICATED_MESSAGE, UNAUTHENTICATED_STATUS);
+  }
+
+  const apiResponse = await listAnsibleTicketsFromBackend(apiUrl, token);
+  if (!apiResponse) {
+    return NextResponse.json(BACKEND_UNREACHABLE_MESSAGE, SERVICE_UNAVAILABLE_STATUS);
+  }
+
+  return forwardBackendResponse(apiResponse);
+}
+
 /** Forwards to POST /tickets/ansible on the backend — the ANSIBLE-only create endpoint. */
 export async function POST(request: NextRequest) {
   const apiUrl = process.env.TICKET_HUB_API_URL;
@@ -45,6 +65,21 @@ export async function POST(request: NextRequest) {
 async function readAuthToken(): Promise<string | undefined> {
   const cookieStore = await cookies();
   return cookieStore.get(COOKIE_NAME)?.value;
+}
+
+async function listAnsibleTicketsFromBackend(
+  apiUrl: string,
+  token: string,
+): Promise<Response | null> {
+  try {
+    return await fetch(`${apiUrl}/tickets/ansible`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    console.error("Failed to reach ticket-hub-api for the ansible ticket list", error);
+    return null;
+  }
 }
 
 async function parseRequestBody(request: NextRequest): Promise<unknown> {
