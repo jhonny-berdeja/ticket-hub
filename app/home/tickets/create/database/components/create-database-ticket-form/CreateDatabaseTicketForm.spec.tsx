@@ -11,16 +11,35 @@ const DB_TARGETS = [
   { namespace: "pcbox-api", deployment: "pcbox-db", dbName: "pcbox-db" },
 ];
 
-function mockDbTargetsFetch() {
-  return vi.fn().mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve({ data: DB_TARGETS }),
+const ASSIGNABLE_USERS = [
+  { id: 1, name: "Ana", lastname: "Gomez", email: "ana.gomez@example.com" },
+  { id: 2, name: "Luis", lastname: "Diaz", email: "luis.diaz@example.com" },
+];
+
+function mockTicketsFetch() {
+  return vi.fn().mockImplementation((url: string) => {
+    if (url === "/api/tickets/db-targets") {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: DB_TARGETS }),
+      });
+    }
+    if (url === "/api/tickets/assignable-users") {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: ASSIGNABLE_USERS }),
+      });
+    }
+    return Promise.resolve({
+      ok: false,
+      json: () => Promise.resolve({}),
+    });
   });
 }
 
 describe("CreateDatabaseTicketForm", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", mockDbTargetsFetch());
+    vi.stubGlobal("fetch", mockTicketsFetch());
   });
 
   afterEach(() => {
@@ -42,6 +61,28 @@ describe("CreateDatabaseTicketForm", () => {
       screen.getByRole("option", { name: /pcbox-db/i }),
     ).toBeInTheDocument();
     expect(targetSelect).toBeInTheDocument();
+  });
+
+  it("renders \"Asignar a\" as a select, populated from GET /tickets/assignable-users", async () => {
+    render(<CreateDatabaseTicketForm />);
+
+    const assigneeSelect = screen.getByLabelText(/asignar a/i);
+    expect(assigneeSelect.tagName).toBe("SELECT");
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith("/api/tickets/assignable-users");
+    });
+
+    expect(
+      await screen.findByRole("option", {
+        name: /ana gomez \(ana\.gomez@example\.com\)/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", {
+        name: /luis diaz \(luis\.diaz@example\.com\)/i,
+      }),
+    ).toBeInTheDocument();
   });
 
   it("shows the SQL textarea (capped at 5000 chars) and no YAML textarea", () => {

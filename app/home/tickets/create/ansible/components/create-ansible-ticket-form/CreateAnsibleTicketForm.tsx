@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   createTicket,
   CreateTicketApiError,
 } from "@/app/home/tickets/create/ansible/components/create-ansible-ticket-form/create-ansible-ticket-form.api";
+import { fetchAssignableUsers } from "@/app/home/tickets/tickets.api";
+import type { AssignableUser } from "@/app/home/tickets/tickets.dto";
 
 const FIXED_DEPARTMENT = "Datacenter";
 const NO_ASSIGNEE_MESSAGE = "Ingresá a quién asignar el ticket.";
@@ -19,9 +21,12 @@ const TICKETS_LIST_PATH = "/home/tickets/list";
  * "Cancelar" does the same navigation, taking over the job the old X
  * close button used to do.
  *
- * `assignee` is a free-text input now, not a dropdown fed by a users
- * list -- there's no local users/roles data left to pick from
- * (ticket-hub-api's own users/roles tables are gone, see its history).
+ * `assignee` is a dropdown fed by `GET /tickets/assignable-users`
+ * (internal ADMIN users on ticket-hub) -- the submitted value is the
+ * selected user's email, which lands in the still free-text `assignee`
+ * VARCHAR(100) column (no FK). See `tickets.api.ts` for the shared
+ * fetch, promoted there since CreateDatabaseTicketForm needs the same
+ * list.
  *
  * Dedicated ANSIBLE-only form: always submits `ticketType: "ANSIBLE"`,
  * no type selector. See CreateDatabaseTicketForm for the DATABASE
@@ -32,11 +37,32 @@ export default function CreateAnsibleTicketForm() {
   const router = useRouter();
 
   const [assignee, setAssignee] = useState("");
+  const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>(
+    [],
+  );
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [codeAnsible, setCodeAnsible] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetchAssignableUsers()
+      .then((users) => {
+        if (cancelled) return;
+        setAssignableUsers(users);
+      })
+      .catch(() => {
+        // Non-fatal: submit still surfaces its own "no assignee"
+        // validation error if the dropdown ends up empty.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,7 +99,7 @@ export default function CreateAnsibleTicketForm() {
   return (
     <>
       <h2 className="mb-6 text-lg font-semibold text-gray-900">
-        Crear ticket Ansible
+        Datacenter
       </h2>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
@@ -100,16 +126,20 @@ export default function CreateAnsibleTicketForm() {
           >
             Asignar a
           </label>
-          <input
+          <select
             id="assignee"
-            type="text"
             required
-            maxLength={100}
             value={assignee}
             onChange={(event) => setAssignee(event.target.value)}
-            placeholder="Nombre de quien lo va a aprobar"
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
-          />
+          >
+            <option value="">Seleccioná a quién asignar</option>
+            {assignableUsers.map((user) => (
+              <option key={user.id} value={user.email}>
+                {user.name} {user.lastname} ({user.email})
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -180,7 +210,7 @@ export default function CreateAnsibleTicketForm() {
             disabled={isSubmitting}
             className="flex-1 rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:opacity-60"
           >
-            {isSubmitting ? "Enviando..." : "Enviar"}
+            {isSubmitting ? "Creando..." : "Crear ticket datacenter"}
           </button>
         </div>
       </form>
