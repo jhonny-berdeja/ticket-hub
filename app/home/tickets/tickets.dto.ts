@@ -7,6 +7,14 @@ export interface DbTarget {
   dbName: string;
 }
 
+/** Internal ADMIN user — fetched from `GET /tickets/assignable-users`, feeds the "Asignar a" dropdown on both create forms. */
+export interface AssignableUser {
+  id: number;
+  name: string;
+  lastname: string;
+  email: string;
+}
+
 export interface TicketDetails {
   id: number;
   number: string;
