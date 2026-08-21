@@ -1,6 +1,7 @@
 import type {
   AssignableUser,
   TicketDetails,
+  TicketType,
 } from "@/app/home/tickets/tickets.dto";
 
 /** Fetches only ANSIBLE (datacenter) tickets. Throws on a non-ok response or network failure. */
@@ -27,27 +28,35 @@ export async function fetchDatabaseTickets(): Promise<TicketDetails[]> {
 export class TicketNotFoundError extends Error {}
 
 /**
- * Looks up a ticket by its full display number, prefix included (e.g.
- * "DC-1", "DB-1") -- the prefix tells the backend which ticket table
- * to search. `datacenter_tickets` and `database_tickets` each keep
- * their own internal `id` sequence, so `number` is the only value
- * that uniquely identifies a ticket; this is the single-ticket lookup
- * every consumer that resolves "the ticket behind this identifier"
- * should use instead of scanning the full list by `id`. Promoted here
- * (rather than left in home-header.api.ts, its original home) since
- * TicketDetailPage now needs the exact same lookup -- same reasoning
- * as `fetchAssignableUsers` above. Rejects with TicketNotFoundError on
- * a non-ok response; any other rejection means a network failure.
+ * Looks up a ticket by its explicit type and bare number -- the caller
+ * states which table to search directly, the backend never parses a
+ * prefix out of a combined string. `datacenter_tickets` and
+ * `database_tickets` each keep their own internal `id` sequence, so
+ * `number` alone is ambiguous across types; this is the single-ticket
+ * lookup every consumer that resolves "the ticket behind this
+ * identifier" should use instead of scanning the full list by `id`.
+ * Promoted here (rather than left in home-header.api.ts, its original
+ * home) since TicketDetailPage now needs the exact same lookup -- same
+ * reasoning as `fetchAssignableUsers` above. Rejects with
+ * TicketNotFoundError on a non-ok response; any other rejection means
+ * a network failure.
  */
 export async function searchTicketByNumber(
-  ticketNumber: string,
+  ticketType: TicketType,
+  number: string,
 ): Promise<TicketDetails> {
-  const response = await fetch(`/api/tickets/by-number/${ticketNumber}`);
+  const typeSegment = ticketTypePathSegment(ticketType);
+  const response = await fetch(`/api/tickets/${typeSegment}/by-number/${number}`);
   if (!response.ok) {
     throw new TicketNotFoundError("Ticket not found");
   }
   const body = (await response.json()) as { data: TicketDetails };
   return body.data;
+}
+
+/** Maps the internal `TicketType` to the path segment its dedicated routes use. */
+function ticketTypePathSegment(ticketType: TicketType): "ansible" | "database" {
+  return ticketType === "ANSIBLE" ? "ansible" : "database";
 }
 
 /**

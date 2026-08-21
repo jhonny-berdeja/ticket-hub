@@ -7,11 +7,40 @@ import {
   TicketNotFoundError,
   searchTicketByNumber,
 } from "@/app/home/tickets/tickets.api";
-import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
+import type { TicketDetails, TicketType } from "@/app/home/tickets/tickets.dto";
 
 const LOAD_ERROR_MESSAGE = "No se pudo cargar el ticket.";
 const NOT_FOUND_MESSAGE = "Ticket no encontrado.";
 const HOME_PATH = "/home";
+
+const DATACENTER_NUMBER_DISPLAY_PREFIX = "DC-";
+const DATABASE_NUMBER_DISPLAY_PREFIX = "DB-";
+
+/**
+ * This route's `number` slug is still the full display number
+ * (`DC-1`/`DB-1`) -- that's this app's user-facing ticket vocabulary,
+ * used for navigation/URLs. The lookup API itself no longer accepts a
+ * combined prefixed string though: it now takes an explicit type + bare
+ * number, so this page derives both from the slug before calling it.
+ * Unrecognized prefix means the URL doesn't identify any real ticket.
+ */
+function parseTicketTypeAndNumber(
+  displayNumber: string,
+): { ticketType: TicketType; number: string } | null {
+  if (displayNumber.startsWith(DATACENTER_NUMBER_DISPLAY_PREFIX)) {
+    return {
+      ticketType: "ANSIBLE",
+      number: displayNumber.slice(DATACENTER_NUMBER_DISPLAY_PREFIX.length),
+    };
+  }
+  if (displayNumber.startsWith(DATABASE_NUMBER_DISPLAY_PREFIX)) {
+    return {
+      ticketType: "DATABASE",
+      number: displayNumber.slice(DATABASE_NUMBER_DISPLAY_PREFIX.length),
+    };
+  }
+  return null;
+}
 
 interface TicketDetailPageProps {
   params: Promise<{ number: string }>;
@@ -40,7 +69,18 @@ export default function TicketDetailPage({ params }: TicketDetailPageProps) {
   useEffect(() => {
     let cancelled = false;
 
-    searchTicketByNumber(number)
+    // Wrapped so an unparseable slug rejects into the same .catch() below
+    // as a real "not found" -- setState only ever happens inside
+    // .then()/.catch(), never synchronously in the effect body.
+    function lookupTicket(): Promise<TicketDetails> {
+      const parsed = parseTicketTypeAndNumber(number);
+      if (!parsed) {
+        return Promise.reject(new TicketNotFoundError());
+      }
+      return searchTicketByNumber(parsed.ticketType, parsed.number);
+    }
+
+    lookupTicket()
       .then((loadedTicket) => {
         if (cancelled) return;
         setTicket(loadedTicket);

@@ -9,6 +9,7 @@ import {
   resolveSearchErrorMessage,
 } from "@/app/home/components/home-header/home-header.service";
 import { searchTicketByNumber } from "@/app/home/tickets/tickets.api";
+import type { TicketType } from "@/app/home/tickets/tickets.dto";
 
 /**
  * Shared chrome for every page under /home: the header (ticket search,
@@ -19,6 +20,7 @@ import { searchTicketByNumber } from "@/app/home/tickets/tickets.api";
 export default function HomeHeader() {
   const router = useRouter();
 
+  const [ticketType, setTicketType] = useState<TicketType>("ANSIBLE");
   const [searchValue, setSearchValue] = useState("");
   const [searchError, setSearchError] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -44,7 +46,7 @@ export default function HomeHeader() {
     setSearchError(null);
     setIsSearching(true);
     try {
-      const ticket = await searchTicketByNumber(ticketNumber);
+      const ticket = await searchTicketByNumber(ticketType, ticketNumber);
       router.push(`/home/tickets/${ticket.number}`);
     } catch (error) {
       setSearchError(resolveSearchErrorMessage(error));
@@ -60,11 +62,20 @@ export default function HomeHeader() {
 
         <div className="flex items-center gap-3">
           <form onSubmit={(event) => void handleSearch(event)} className="flex items-center gap-2">
+            <select
+              value={ticketType}
+              onChange={(event) => setTicketType(event.target.value as TicketType)}
+              aria-label="Tipo de ticket"
+              className="rounded-lg border border-gray-300 px-2 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+            >
+              <option value="ANSIBLE">DC</option>
+              <option value="DATABASE">DB</option>
+            </select>
             <input
               type="text"
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Buscar ticket (DC-1 o DB-1)"
+              placeholder="Buscar ticket (número)"
               aria-label="Buscar ticket por número"
               className="w-40 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
             />

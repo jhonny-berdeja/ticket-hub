@@ -16,10 +16,17 @@ vi.mock("@/app/home/components/home-header/home-header.api", () => ({
 }));
 
 vi.mock("@/app/home/tickets/tickets.api", () => ({
-  searchTicketByNumber: (ticketNumber: string) =>
-    searchTicketByNumberMock(ticketNumber),
+  searchTicketByNumber: (ticketType: string, number: string) =>
+    searchTicketByNumberMock(ticketType, number),
   TicketNotFoundError: class TicketNotFoundError extends Error {},
 }));
+
+async function selectTicketType(
+  user: ReturnType<typeof userEvent.setup>,
+  label: "DC" | "DB",
+) {
+  await user.selectOptions(screen.getByLabelText("Tipo de ticket"), label);
+}
 
 function typeAndSubmit(user: ReturnType<typeof userEvent.setup>, value: string) {
   const input = screen.getByLabelText("Buscar ticket por número");
@@ -36,12 +43,18 @@ describe("HomeHeader search", () => {
     pushMock.mockReset();
   });
 
-  it("shows a placeholder mentioning both DC- and DB- formats", () => {
+  it("shows a placeholder for a bare ticket number", () => {
     render(<HomeHeader />);
 
     expect(
-      screen.getByPlaceholderText("Buscar ticket (DC-1 o DB-1)"),
+      screen.getByPlaceholderText("Buscar ticket (número)"),
     ).toBeInTheDocument();
+  });
+
+  it("defaults the ticket-type select to DC", () => {
+    render(<HomeHeader />);
+
+    expect(screen.getByLabelText("Tipo de ticket")).toHaveValue("ANSIBLE");
   });
 
   it("shows a validation message and never calls the API for an empty input", async () => {
@@ -51,37 +64,37 @@ describe("HomeHeader search", () => {
     await user.click(screen.getByRole("button", { name: /buscar/i }));
 
     expect(
-      await screen.findByText("Ingresá un número de ticket válido (DC-1 o DB-1)."),
+      await screen.findByText("Ingresá un número de ticket válido."),
     ).toBeInTheDocument();
     expect(searchTicketByNumberMock).not.toHaveBeenCalled();
   });
 
-  it("shows a validation message for a non-prefixed or old TK- style input", async () => {
+  it("shows a validation message for a prefixed or non-digit input", async () => {
     const user = userEvent.setup();
     render(<HomeHeader />);
 
-    await typeAndSubmit(user, "TK-1");
+    await typeAndSubmit(user, "DC-1");
 
     expect(
-      await screen.findByText("Ingresá un número de ticket válido (DC-1 o DB-1)."),
+      await screen.findByText("Ingresá un número de ticket válido."),
     ).toBeInTheDocument();
     expect(searchTicketByNumberMock).not.toHaveBeenCalled();
   });
 
-  it("sends the full normalized DC-<n> string, not a bare number, and navigates by ticket number on success", async () => {
+  it("sends the ANSIBLE type and bare number for the default DC selection, and navigates by ticket number on success", async () => {
     searchTicketByNumberMock.mockResolvedValue({ id: 1, number: "DC-1" });
     const user = userEvent.setup();
     render(<HomeHeader />);
 
-    await typeAndSubmit(user, "dc-1");
+    await typeAndSubmit(user, "1");
 
-    expect(searchTicketByNumberMock).toHaveBeenCalledWith("DC-1");
+    expect(searchTicketByNumberMock).toHaveBeenCalledWith("ANSIBLE", "1");
     await waitFor(() =>
       expect(pushMock).toHaveBeenCalledWith("/home/tickets/DC-1"),
     );
   });
 
-  it("sends the full normalized DB-<n> string for a database ticket and navigates by ticket number, not id", async () => {
+  it("sends the DATABASE type when DB is selected, and navigates by ticket number, not id", async () => {
     // Same internal id as the DC-1 ticket above -- datacenter_tickets and
     // database_tickets each have their own id sequence, so navigating by
     // id would collide. Navigation must use `number` instead.
@@ -89,9 +102,10 @@ describe("HomeHeader search", () => {
     const user = userEvent.setup();
     render(<HomeHeader />);
 
-    await typeAndSubmit(user, "db-42");
+    await selectTicketType(user, "DB");
+    await typeAndSubmit(user, "42");
 
-    expect(searchTicketByNumberMock).toHaveBeenCalledWith("DB-42");
+    expect(searchTicketByNumberMock).toHaveBeenCalledWith("DATABASE", "42");
     await waitFor(() =>
       expect(pushMock).toHaveBeenCalledWith("/home/tickets/DB-42"),
     );

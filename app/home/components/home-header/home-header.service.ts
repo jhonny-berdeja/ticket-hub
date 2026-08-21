@@ -1,22 +1,20 @@
 import { TicketNotFoundError } from "@/app/home/tickets/tickets.api";
 
-const TICKET_NUMBER_PATTERN = /^(DC|DB)-\d+$/;
+const TICKET_NUMBER_PATTERN = /^\d+$/;
 const TICKET_NOT_FOUND_MESSAGE = "No se encontró ese ticket.";
 const SEARCH_ERROR_MESSAGE = "No se pudo buscar el ticket. Intentá de nuevo.";
 export const INVALID_TICKET_NUMBER_MESSAGE =
-  "Ingresá un número de ticket válido (DC-1 o DB-1).";
+  "Ingresá un número de ticket válido.";
 
 /**
- * Pure parsing rule, no React involved. Only normalizes case and
- * surrounding whitespace now — the prefix is no longer stripped, since
- * after the datacenter/database ticket table split each table keeps
- * its own number sequence, so the backend needs the full "DC-<n>" /
- * "DB-<n>" string to know which table to search. Returns null when the
- * input isn't a valid "DC-<digits>" / "DB-<digits>" ticket number
- * (including an empty one).
+ * Pure parsing rule, no React involved. Only normalizes surrounding
+ * whitespace now -- the ticket type is no longer part of this input,
+ * it's selected separately via HomeHeader's type dropdown and passed
+ * to the search flow alongside this bare number. Returns null for
+ * anything that isn't digits-only (including an empty input).
  */
 export function parseTicketNumber(searchValue: string): string | null {
-  const normalized = searchValue.trim().toUpperCase();
+  const normalized = searchValue.trim();
   return TICKET_NUMBER_PATTERN.test(normalized) ? normalized : null;
 }
 

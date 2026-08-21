@@ -17,7 +17,7 @@ const BACKEND_UNREACHABLE_MESSAGE = {
 
 type RouteContext = { params: Promise<{ number: string }> };
 
-/** `number` here is the full display string ("DC-1"/"DB-1"), prefix included -- the backend uses it to pick which ticket table to search, since datacenter and database tickets each have their own number sequence. */
+/** `number` here is the bare integer, no prefix -- forwards to GET /tickets/database/by-number/:number on the backend, the DATABASE-only lookup endpoint. */
 export async function GET(_request: Request, context: RouteContext) {
   const apiUrl = process.env.TICKET_HUB_API_URL;
   if (!apiUrl) {
@@ -30,7 +30,7 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   const { number } = await context.params;
-  const apiResponse = await findTicketByNumberInBackend(apiUrl, token, number);
+  const apiResponse = await findDatabaseTicketByNumberInBackend(apiUrl, token, number);
   if (!apiResponse) {
     return NextResponse.json(BACKEND_UNREACHABLE_MESSAGE, SERVICE_UNAVAILABLE_STATUS);
   }
@@ -43,18 +43,18 @@ async function readAuthToken(): Promise<string | undefined> {
   return cookieStore.get(COOKIE_NAME)?.value;
 }
 
-async function findTicketByNumberInBackend(
+async function findDatabaseTicketByNumberInBackend(
   apiUrl: string,
   token: string,
   number: string,
 ): Promise<Response | null> {
   try {
-    return await fetch(`${apiUrl}/tickets/by-number/${number}`, {
+    return await fetch(`${apiUrl}/tickets/database/by-number/${number}`, {
       headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (error) {
-    console.error("Failed to reach ticket-hub-api to find a ticket by number", error);
+    console.error("Failed to reach ticket-hub-api to find a database ticket by number", error);
     return null;
   }
 }

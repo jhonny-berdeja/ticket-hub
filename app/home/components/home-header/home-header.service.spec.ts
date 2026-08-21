@@ -5,14 +5,9 @@ import {
 } from "./home-header.service";
 
 describe("parseTicketNumber", () => {
-  it("normalizes case and surrounding whitespace but keeps the prefix", () => {
-    expect(parseTicketNumber("  dc-1  ")).toBe("DC-1");
-    expect(parseTicketNumber("db-42")).toBe("DB-42");
-  });
-
-  it("accepts both the DC- and DB- prefixes", () => {
-    expect(parseTicketNumber("DC-7")).toBe("DC-7");
-    expect(parseTicketNumber("DB-7")).toBe("DB-7");
+  it("normalizes surrounding whitespace around a bare number", () => {
+    expect(parseTicketNumber("  1  ")).toBe("1");
+    expect(parseTicketNumber("42")).toBe("42");
   });
 
   it("returns null for an empty or whitespace-only input", () => {
@@ -20,20 +15,21 @@ describe("parseTicketNumber", () => {
     expect(parseTicketNumber("   ")).toBeNull();
   });
 
-  it("returns null for the old bare-number / TK- prefixed formats", () => {
-    expect(parseTicketNumber("1")).toBeNull();
+  it("returns null for the old prefixed formats", () => {
+    expect(parseTicketNumber("DC-1")).toBeNull();
+    expect(parseTicketNumber("DB-1")).toBeNull();
     expect(parseTicketNumber("TK-1")).toBeNull();
   });
 
-  it("returns null for a prefix without digits or with trailing garbage", () => {
-    expect(parseTicketNumber("DC-")).toBeNull();
-    expect(parseTicketNumber("DC-1a")).toBeNull();
+  it("returns null for anything with non-digit characters", () => {
+    expect(parseTicketNumber("1a")).toBeNull();
+    expect(parseTicketNumber("-1")).toBeNull();
   });
 });
 
 describe("INVALID_TICKET_NUMBER_MESSAGE", () => {
-  it("mentions both valid prefixes", () => {
-    expect(INVALID_TICKET_NUMBER_MESSAGE).toMatch(/DC-1/);
-    expect(INVALID_TICKET_NUMBER_MESSAGE).toMatch(/DB-1/);
+  it("mentions a valid ticket number without referencing a prefix", () => {
+    expect(INVALID_TICKET_NUMBER_MESSAGE).not.toMatch(/DC-1|DB-1/);
+    expect(INVALID_TICKET_NUMBER_MESSAGE).toMatch(/número de ticket válido/);
   });
 });
