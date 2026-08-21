@@ -8,11 +8,11 @@ export async function logout(): Promise<void> {
 /** Thrown when the ticket lookup resolves but no ticket matches the number. */
 export class TicketNotFoundError extends Error {}
 
-/** Looks up a ticket by its bare number (no "TK-" prefix). Rejects with TicketNotFoundError on a non-ok response; any other rejection means a network failure. */
+/** Looks up a ticket by its full display number, prefix included (e.g. "DC-1", "DB-1") -- the prefix tells the backend which ticket table to search. Rejects with TicketNotFoundError on a non-ok response; any other rejection means a network failure. */
 export async function searchTicketByNumber(
-  bareNumber: string,
+  ticketNumber: string,
 ): Promise<TicketDetails> {
-  const response = await fetch(`/api/tickets/by-number/${bareNumber}`);
+  const response = await fetch(`/api/tickets/by-number/${ticketNumber}`);
   if (!response.ok) {
     throw new TicketNotFoundError("Ticket not found");
   }

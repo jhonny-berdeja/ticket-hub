@@ -7,6 +7,7 @@ import {
   searchTicketByNumber,
 } from "@/app/home/components/home-header/home-header.api";
 import {
+  INVALID_TICKET_NUMBER_MESSAGE,
   parseTicketNumber,
   resolveSearchErrorMessage,
 } from "@/app/home/components/home-header/home-header.service";
@@ -36,15 +37,16 @@ export default function HomeHeader() {
   async function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const bareNumber = parseTicketNumber(searchValue);
-    if (!bareNumber) {
+    const ticketNumber = parseTicketNumber(searchValue);
+    if (!ticketNumber) {
+      setSearchError(INVALID_TICKET_NUMBER_MESSAGE);
       return;
     }
 
     setSearchError(null);
     setIsSearching(true);
     try {
-      const ticket = await searchTicketByNumber(bareNumber);
+      const ticket = await searchTicketByNumber(ticketNumber);
       router.push(`/home/tickets/${ticket.id}`);
     } catch (error) {
       setSearchError(resolveSearchErrorMessage(error));
@@ -64,7 +66,7 @@ export default function HomeHeader() {
               type="text"
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
-              placeholder="Buscar ticket (TK-1)"
+              placeholder="Buscar ticket (DC-1 o DB-1)"
               aria-label="Buscar ticket por número"
               className="w-40 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
             />

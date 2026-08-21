@@ -17,7 +17,7 @@ const BACKEND_UNREACHABLE_MESSAGE = {
 
 type RouteContext = { params: Promise<{ number: string }> };
 
-/** `number` here is the bare integer (no "TK-" prefix) - the caller strips it before hitting this route. */
+/** `number` here is the full display string ("DC-1"/"DB-1"), prefix included -- the backend uses it to pick which ticket table to search, since datacenter and database tickets each have their own number sequence. */
 export async function GET(_request: Request, context: RouteContext) {
   const apiUrl = process.env.TICKET_HUB_API_URL;
   if (!apiUrl) {

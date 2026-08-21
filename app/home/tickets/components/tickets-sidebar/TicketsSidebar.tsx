@@ -8,7 +8,12 @@ import NavLink from "@/common/nav-link/NavLink";
 export default function TicketsSidebar() {
   return (
     <aside className="flex w-64 shrink-0 flex-col gap-1 border-r border-gray-200 bg-white p-4">
-      <NavLink href="/home/tickets/list">Ver tickets</NavLink>
+      <NavLink href="/home/tickets/list/ansible">
+        Ver tickets Centro de Datos
+      </NavLink>
+      <NavLink href="/home/tickets/list/database">
+        Ver tickets Base de Datos
+      </NavLink>
       <NavLink href="/home/tickets/create/ansible">
         Crear ticket Centro de Datos
       </NavLink>
