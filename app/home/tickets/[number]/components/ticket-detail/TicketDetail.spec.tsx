@@ -85,7 +85,10 @@ describe("TicketDetail — approve flow", () => {
     render(<TicketDetail ticket={DATABASE_TICKET} />);
     await user.click(screen.getByRole("button", { name: /aprobar/i }));
 
-    expect(approveTicket).toHaveBeenCalledWith(DATABASE_TICKET.id);
+    expect(approveTicket).toHaveBeenCalledWith(
+      DATABASE_TICKET.ticketType,
+      DATABASE_TICKET.id,
+    );
     expect(await screen.findByText("APPROVED")).toBeInTheDocument();
     expect(
       screen.getByText("Query executed successfully"),

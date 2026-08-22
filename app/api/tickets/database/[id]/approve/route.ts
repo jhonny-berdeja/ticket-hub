@@ -24,6 +24,7 @@ const BACKEND_UNREACHABLE_MESSAGE = {
 
 type RouteContext = { params: Promise<{ id: string }> };
 
+/** `id` here is the bare integer -- forwards to PATCH /tickets/database/:id/approve on the backend, the DATABASE-only approve endpoint. */
 export async function PATCH(_request: Request, context: RouteContext) {
   const apiUrl = process.env.TICKET_HUB_API_URL;
   if (!apiUrl) {
@@ -36,7 +37,7 @@ export async function PATCH(_request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
-  const apiResponse = await approveTicketInBackend(apiUrl, token, id);
+  const apiResponse = await approveDatabaseTicketInBackend(apiUrl, token, id);
   if (!apiResponse) {
     return NextResponse.json(BACKEND_UNREACHABLE_MESSAGE, SERVICE_UNAVAILABLE_STATUS);
   }
@@ -49,19 +50,19 @@ async function readAuthToken(): Promise<string | undefined> {
   return cookieStore.get(COOKIE_NAME)?.value;
 }
 
-async function approveTicketInBackend(
+async function approveDatabaseTicketInBackend(
   apiUrl: string,
   token: string,
   id: string,
 ): Promise<Response | null> {
   try {
-    return await fetch(`${apiUrl}/tickets/${id}/approve`, {
+    return await fetch(`${apiUrl}/tickets/database/${id}/approve`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (error) {
-    console.error("Failed to reach ticket-hub-api to approve a ticket", error);
+    console.error("Failed to reach ticket-hub-api to approve a database ticket", error);
     return null;
   }
 }

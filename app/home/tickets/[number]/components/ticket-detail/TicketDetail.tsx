@@ -35,7 +35,7 @@ export default function TicketDetail({ ticket: initialTicket }: TicketDetailProp
     setError(null);
     setIsApproving(true);
     try {
-      const updatedTicket = await approveTicket(ticket.id);
+      const updatedTicket = await approveTicket(ticket.ticketType, ticket.id);
       setTicket(updatedTicket);
     } catch {
       setError(APPROVE_ERROR_MESSAGE);

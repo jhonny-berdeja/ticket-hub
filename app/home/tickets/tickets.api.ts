@@ -55,7 +55,7 @@ export async function searchTicketByNumber(
 }
 
 /** Maps the internal `TicketType` to the path segment its dedicated routes use. */
-function ticketTypePathSegment(ticketType: TicketType): "ansible" | "database" {
+export function ticketTypePathSegment(ticketType: TicketType): "ansible" | "database" {
   return ticketType === "ANSIBLE" ? "ansible" : "database";
 }
 
