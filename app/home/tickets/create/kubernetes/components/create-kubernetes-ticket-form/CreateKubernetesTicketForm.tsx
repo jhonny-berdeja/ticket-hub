@@ -7,10 +7,14 @@ import {
   CreateTicketApiError,
 } from "@/app/home/tickets/create/kubernetes/components/create-kubernetes-ticket-form/create-kubernetes-ticket-form.api";
 import { fetchAssignableUsers } from "@/app/home/tickets/tickets.api";
-import type { AssignableUser } from "@/app/home/tickets/tickets.dto";
+import type {
+  AssignableUser,
+  KubernetesExecutionType,
+} from "@/app/home/tickets/tickets.dto";
 
 const FIXED_DEPARTMENT = "Kubernetes";
 const NO_ASSIGNEE_MESSAGE = "Ingresá a quién asignar el ticket.";
+const NO_EXECUTION_TYPE_MESSAGE = "Seleccioná el tipo de ejecución.";
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 const KUBERNETES_TICKETS_LIST_PATH = "/home/tickets/list/kubernetes";
 
@@ -30,10 +34,19 @@ const KUBERNETES_TICKETS_LIST_PATH = "/home/tickets/list/kubernetes";
  * CreateDatabaseTicketForm need the same list.
  *
  * Dedicated KUBERNETES-only form: posts to /api/tickets/kubernetes, no
- * type selector. Mirrors CreateAnsibleTicketForm field-for-field --
- * same fixed Departamento pattern, same Asignar a/Asunto/Descripción
- * fields -- but the YAML field lands in the dedicated `codeYaml`
- * column instead of `codeAnsible`.
+ * ticket-type selector (that's fixed by the route). Mirrors
+ * CreateAnsibleTicketForm field-for-field -- same fixed Departamento
+ * pattern, same Asignar a/Asunto/Descripción fields -- but the YAML
+ * field lands in the dedicated `codeYaml` column instead of
+ * `codeAnsible`.
+ *
+ * `executionType` ("Tipo de ejecución") is KUBERNETES-specific: it
+ * tells the backend whether `codeYaml` should be run as an Ansible
+ * playbook or applied as a raw manifest. Static two-option select (no
+ * fetch needed, the enum is fixed) -- required with an empty default,
+ * validated the same way as `assignee` before submit, since this
+ * choice changes how the backend executes the ticket and shouldn't be
+ * silently defaulted.
  */
 export default function CreateKubernetesTicketForm() {
   const router = useRouter();
@@ -42,6 +55,9 @@ export default function CreateKubernetesTicketForm() {
   const [assignableUsers, setAssignableUsers] = useState<AssignableUser[]>(
     [],
   );
+  const [executionType, setExecutionType] = useState<
+    KubernetesExecutionType | ""
+  >("");
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [codeYaml, setCodeYaml] = useState("");
@@ -74,12 +90,18 @@ export default function CreateKubernetesTicketForm() {
       return;
     }
 
+    if (executionType === "") {
+      setError(NO_EXECUTION_TYPE_MESSAGE);
+      return;
+    }
+
     setError(null);
     setIsSubmitting(true);
     try {
       const createdTicket = await createTicket({
         assignee,
         department: FIXED_DEPARTMENT,
+        executionType,
         subject,
         description,
         codeYaml: codeYaml === "" ? undefined : codeYaml,
@@ -118,6 +140,30 @@ export default function CreateKubernetesTicketForm() {
             disabled
             className="rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm text-gray-500"
           />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="execution-type"
+            className="text-sm font-medium text-gray-700"
+          >
+            Tipo de ejecución
+          </label>
+          <select
+            id="execution-type"
+            required
+            value={executionType}
+            onChange={(event) =>
+              setExecutionType(
+                event.target.value as KubernetesExecutionType,
+              )
+            }
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+          >
+            <option value="">Seleccioná el tipo de ejecución</option>
+            <option value="ANSIBLE">Ansible</option>
+            <option value="MANIFEST">Manifest</option>
+          </select>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -183,7 +229,7 @@ export default function CreateKubernetesTicketForm() {
 
         <div className="flex flex-col gap-1.5">
           <label htmlFor="yaml" className="text-sm font-medium text-gray-700">
-            Código YAML
+            {executionType === "ANSIBLE" ? "Playbook Ansible" : "Código YAML"}
           </label>
           <textarea
             id="yaml"
@@ -191,7 +237,11 @@ export default function CreateKubernetesTicketForm() {
             maxLength={500}
             value={codeYaml}
             onChange={(event) => setCodeYaml(event.target.value)}
-            placeholder={"clave: valor\notra_clave: otro_valor"}
+            placeholder={
+              executionType === "ANSIBLE"
+                ? "- hosts: all\n  tasks:\n    - name: ..."
+                : "clave: valor\notra_clave: otro_valor"
+            }
             className="resize-none rounded-lg border border-gray-300 px-3 py-2 font-mono text-sm text-gray-900 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
           />
         </div>

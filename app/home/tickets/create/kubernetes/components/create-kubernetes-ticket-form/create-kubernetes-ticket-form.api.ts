@@ -1,10 +1,14 @@
-import type { TicketDetails } from "@/app/home/tickets/tickets.dto";
+import type {
+  KubernetesExecutionType,
+  TicketDetails,
+} from "@/app/home/tickets/tickets.dto";
 
 const GENERIC_ERROR_MESSAGE = "No se pudo crear el ticket. Intentá de nuevo.";
 
 interface CreateKubernetesTicketPayload {
   assignee: string;
   department: string;
+  executionType: KubernetesExecutionType;
   subject: string;
   description: string;
   codeYaml?: string;
