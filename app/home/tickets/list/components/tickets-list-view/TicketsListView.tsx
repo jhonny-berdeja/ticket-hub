@@ -5,6 +5,7 @@ import TicketsTable from "@/app/home/tickets/list/components/tickets-table/Ticke
 import {
   fetchAnsibleTickets,
   fetchDatabaseTickets,
+  fetchKubernetesTickets,
 } from "@/app/home/tickets/tickets.api";
 import type { TicketDetails, TicketType } from "@/app/home/tickets/tickets.dto";
 
@@ -71,8 +72,18 @@ export default function TicketsListView({
   );
 }
 
+/** Exhaustive switch so a future 4th ticket type can't silently fall into the wrong branch. */
 function fetchTicketsFor(ticketType: TicketType): Promise<TicketDetails[]> {
-  return ticketType === "ANSIBLE"
-    ? fetchAnsibleTickets()
-    : fetchDatabaseTickets();
+  switch (ticketType) {
+    case "ANSIBLE":
+      return fetchAnsibleTickets();
+    case "DATABASE":
+      return fetchDatabaseTickets();
+    case "KUBERNETES":
+      return fetchKubernetesTickets();
+    default: {
+      const exhaustiveCheck: never = ticketType;
+      throw new Error(`Unknown ticket type: ${String(exhaustiveCheck)}`);
+    }
+  }
 }

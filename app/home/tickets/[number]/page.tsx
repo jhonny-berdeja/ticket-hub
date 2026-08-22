@@ -15,6 +15,7 @@ const HOME_PATH = "/home";
 
 const DATACENTER_NUMBER_DISPLAY_PREFIX = "DC-";
 const DATABASE_NUMBER_DISPLAY_PREFIX = "DB-";
+const KUBERNETES_NUMBER_DISPLAY_PREFIX = "KB-";
 
 /**
  * This route's `number` slug is still the full display number
@@ -37,6 +38,12 @@ function parseTicketTypeAndNumber(
     return {
       ticketType: "DATABASE",
       number: displayNumber.slice(DATABASE_NUMBER_DISPLAY_PREFIX.length),
+    };
+  }
+  if (displayNumber.startsWith(KUBERNETES_NUMBER_DISPLAY_PREFIX)) {
+    return {
+      ticketType: "KUBERNETES",
+      number: displayNumber.slice(KUBERNETES_NUMBER_DISPLAY_PREFIX.length),
     };
   }
   return null;

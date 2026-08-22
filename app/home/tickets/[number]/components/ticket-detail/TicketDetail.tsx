@@ -75,6 +75,14 @@ export default function TicketDetail({ ticket: initialTicket }: TicketDetailProp
             </pre>
           </div>
         )}
+        {ticket.ticketType === "KUBERNETES" && ticket.codeYaml && (
+          <div>
+            <span className="font-medium text-gray-700">Código YAML:</span>
+            <pre className="mt-1 whitespace-pre-wrap rounded-lg bg-gray-100 p-3 font-mono text-xs text-gray-700">
+              {ticket.codeYaml}
+            </pre>
+          </div>
+        )}
         {ticket.ticketType === "DATABASE" && (
           <>
             <div>

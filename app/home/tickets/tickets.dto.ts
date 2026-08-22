@@ -1,4 +1,4 @@
-export type TicketType = "ANSIBLE" | "DATABASE";
+export type TicketType = "ANSIBLE" | "DATABASE" | "KUBERNETES";
 
 /** Allowlisted DATABASE target — fetched from `GET /tickets/db-targets`, never hardcoded (see infra design's "anti-drift" note). */
 export interface DbTarget {
@@ -24,6 +24,7 @@ export interface TicketDetails {
   description: string;
   ticketType: TicketType;
   codeAnsible: string | null;
+  codeYaml: string | null;
   response: string | null;
   namespace: string | null;
   deployment: string | null;

@@ -70,6 +70,7 @@ export default function HomeHeader() {
             >
               <option value="ANSIBLE">DC</option>
               <option value="DATABASE">DB</option>
+              <option value="KUBERNETES">KB</option>
             </select>
             <input
               type="text"

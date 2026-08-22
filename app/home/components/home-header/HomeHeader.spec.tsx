@@ -23,7 +23,7 @@ vi.mock("@/app/home/tickets/tickets.api", () => ({
 
 async function selectTicketType(
   user: ReturnType<typeof userEvent.setup>,
-  label: "DC" | "DB",
+  label: "DC" | "DB" | "KB",
 ) {
   await user.selectOptions(screen.getByLabelText("Tipo de ticket"), label);
 }
@@ -108,6 +108,20 @@ describe("HomeHeader search", () => {
     expect(searchTicketByNumberMock).toHaveBeenCalledWith("DATABASE", "42");
     await waitFor(() =>
       expect(pushMock).toHaveBeenCalledWith("/home/tickets/DB-42"),
+    );
+  });
+
+  it("sends the KUBERNETES type when KB is selected, and navigates by ticket number, not id", async () => {
+    searchTicketByNumberMock.mockResolvedValue({ id: 1, number: "KB-9" });
+    const user = userEvent.setup();
+    render(<HomeHeader />);
+
+    await selectTicketType(user, "KB");
+    await typeAndSubmit(user, "9");
+
+    expect(searchTicketByNumberMock).toHaveBeenCalledWith("KUBERNETES", "9");
+    await waitFor(() =>
+      expect(pushMock).toHaveBeenCalledWith("/home/tickets/KB-9"),
     );
   });
 });

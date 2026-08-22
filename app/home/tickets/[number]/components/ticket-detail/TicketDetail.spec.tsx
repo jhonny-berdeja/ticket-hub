@@ -31,6 +31,7 @@ const DATABASE_TICKET: TicketDetails = {
   description: "Need to read one row",
   ticketType: "DATABASE",
   codeAnsible: null,
+  codeYaml: null,
   response: null,
   namespace: "pcbox-api",
   deployment: "pcbox-db-deploy",
@@ -62,6 +63,24 @@ describe("TicketDetail — DATABASE ticketType", () => {
     render(<TicketDetail ticket={ansibleTicket} />);
 
     expect(screen.getByText("- hosts: all")).toBeInTheDocument();
+    expect(screen.queryByText("pcbox-api")).not.toBeInTheDocument();
+    expect(screen.queryByText("SELECT * FROM users;")).not.toBeInTheDocument();
+  });
+
+  it("renders the YAML block from codeYaml for a KUBERNETES ticket, and no DATABASE fields", () => {
+    const kubernetesTicket: TicketDetails = {
+      ...DATABASE_TICKET,
+      ticketType: "KUBERNETES",
+      codeYaml: "apiVersion: apps/v1",
+      namespace: null,
+      deployment: null,
+      dbName: null,
+      sqlCode: null,
+    };
+
+    render(<TicketDetail ticket={kubernetesTicket} />);
+
+    expect(screen.getByText("apiVersion: apps/v1")).toBeInTheDocument();
     expect(screen.queryByText("pcbox-api")).not.toBeInTheDocument();
     expect(screen.queryByText("SELECT * FROM users;")).not.toBeInTheDocument();
   });

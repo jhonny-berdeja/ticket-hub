@@ -24,6 +24,16 @@ export async function fetchDatabaseTickets(): Promise<TicketDetails[]> {
   return body.data;
 }
 
+/** Fetches only KUBERNETES tickets. Throws on a non-ok response or network failure. */
+export async function fetchKubernetesTickets(): Promise<TicketDetails[]> {
+  const response = await fetch("/api/tickets/kubernetes");
+  if (!response.ok) {
+    throw new Error("Failed to load kubernetes tickets");
+  }
+  const body: { data: TicketDetails[] } = await response.json();
+  return body.data;
+}
+
 /** Thrown when the ticket lookup resolves but no ticket matches the number. */
 export class TicketNotFoundError extends Error {}
 
@@ -54,9 +64,27 @@ export async function searchTicketByNumber(
   return body.data;
 }
 
-/** Maps the internal `TicketType` to the path segment its dedicated routes use. */
-export function ticketTypePathSegment(ticketType: TicketType): "ansible" | "database" {
-  return ticketType === "ANSIBLE" ? "ansible" : "database";
+/**
+ * Maps the internal `TicketType` to the path segment its dedicated routes
+ * use. Exhaustive switch (not `===`/`else`) so a future 4th ticket type
+ * can't silently fall through into the wrong route -- the `default` branch
+ * throws instead.
+ */
+export function ticketTypePathSegment(
+  ticketType: TicketType,
+): "ansible" | "database" | "kubernetes" {
+  switch (ticketType) {
+    case "ANSIBLE":
+      return "ansible";
+    case "DATABASE":
+      return "database";
+    case "KUBERNETES":
+      return "kubernetes";
+    default: {
+      const exhaustiveCheck: never = ticketType;
+      throw new Error(`Unknown ticket type: ${String(exhaustiveCheck)}`);
+    }
+  }
 }
 
 /**

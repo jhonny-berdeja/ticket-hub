@@ -20,6 +20,12 @@ export default function TicketsSidebar() {
       <NavLink href="/home/tickets/create/database">
         Crear ticket Base de datos
       </NavLink>
+      <NavLink href="/home/tickets/list/kubernetes">
+        Ver tickets Kubernetes
+      </NavLink>
+      <NavLink href="/home/tickets/create/kubernetes">
+        Crear ticket Kubernetes
+      </NavLink>
     </aside>
   );
 }

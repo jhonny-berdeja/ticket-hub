@@ -16,6 +16,7 @@ const ANSIBLE_TICKET: TicketDetails = {
   description: "Restart the web service",
   ticketType: "ANSIBLE",
   codeAnsible: "- hosts: all",
+  codeYaml: null,
   response: null,
   namespace: null,
   deployment: null,
@@ -32,11 +33,29 @@ const DATABASE_TICKET: TicketDetails = {
   description: "Need to read one row",
   ticketType: "DATABASE",
   codeAnsible: null,
+  codeYaml: null,
   response: null,
   namespace: "pcbox-api",
   deployment: "pcbox-db-deploy",
   dbName: "pcbox-db",
   sqlCode: "SELECT * FROM users;",
+};
+
+const KUBERNETES_TICKET: TicketDetails = {
+  id: 3,
+  number: "KB-1",
+  department: "Kubernetes",
+  subject: "Deploy manifest",
+  status: "CREATED",
+  description: "Apply the new deployment manifest",
+  ticketType: "KUBERNETES",
+  codeAnsible: null,
+  codeYaml: "apiVersion: apps/v1",
+  response: null,
+  namespace: null,
+  deployment: null,
+  dbName: null,
+  sqlCode: null,
 };
 
 function mockTicketsFetch(ticket: TicketDetails) {
@@ -75,6 +94,19 @@ describe("TicketsListView", () => {
 
     expect(await screen.findByText("DB-1")).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledWith("/api/tickets/database");
+  });
+
+  it('fetches /api/tickets/kubernetes and shows the KUBERNETES ticket when ticketType="KUBERNETES"', async () => {
+    vi.stubGlobal("fetch", mockTicketsFetch(KUBERNETES_TICKET));
+
+    render(<TicketsListView ticketType="KUBERNETES" title="Tickets Kubernetes" />);
+
+    expect(
+      screen.getByRole("heading", { name: "Tickets Kubernetes" }),
+    ).toBeInTheDocument();
+
+    expect(await screen.findByText("KB-1")).toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledWith("/api/tickets/kubernetes");
   });
 
   it("never calls the merged /api/tickets endpoint", async () => {
