@@ -28,6 +28,8 @@ export interface TicketDetails {
   ticketType: TicketType;
   codeAnsible: string | null;
   codeYaml: string | null;
+  /** KUBERNETES-only: how `codeYaml` should be executed. `null` for non-KUBERNETES tickets. */
+  executionType: KubernetesExecutionType | null;
   response: string | null;
   namespace: string | null;
   deployment: string | null;

@@ -32,6 +32,7 @@ const DATABASE_TICKET: TicketDetails = {
   ticketType: "DATABASE",
   codeAnsible: null,
   codeYaml: null,
+  executionType: null,
   response: null,
   namespace: "pcbox-api",
   deployment: "pcbox-db-deploy",
@@ -72,6 +73,7 @@ describe("TicketDetail — DATABASE ticketType", () => {
       ...DATABASE_TICKET,
       ticketType: "KUBERNETES",
       codeYaml: "apiVersion: apps/v1",
+      executionType: "MANIFEST",
       namespace: null,
       deployment: null,
       dbName: null,
@@ -83,6 +85,30 @@ describe("TicketDetail — DATABASE ticketType", () => {
     expect(screen.getByText("apiVersion: apps/v1")).toBeInTheDocument();
     expect(screen.queryByText("pcbox-api")).not.toBeInTheDocument();
     expect(screen.queryByText("SELECT * FROM users;")).not.toBeInTheDocument();
+  });
+
+  it("renders the executionType for a KUBERNETES ticket, and omits it for other ticket types", () => {
+    const kubernetesTicket: TicketDetails = {
+      ...DATABASE_TICKET,
+      ticketType: "KUBERNETES",
+      codeYaml: "apiVersion: apps/v1",
+      executionType: "ANSIBLE",
+      namespace: null,
+      deployment: null,
+      dbName: null,
+      sqlCode: null,
+    };
+
+    render(<TicketDetail ticket={kubernetesTicket} />);
+
+    expect(screen.getByText(/tipo de ejecución/i)).toBeInTheDocument();
+    expect(screen.getByText("ANSIBLE")).toBeInTheDocument();
+  });
+
+  it("does not render the execution type field for a DATABASE ticket", () => {
+    render(<TicketDetail ticket={DATABASE_TICKET} />);
+
+    expect(screen.queryByText(/tipo de ejecución/i)).not.toBeInTheDocument();
   });
 });
 

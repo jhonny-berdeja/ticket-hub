@@ -75,6 +75,12 @@ export default function TicketDetail({ ticket: initialTicket }: TicketDetailProp
             </pre>
           </div>
         )}
+        {ticket.ticketType === "KUBERNETES" && ticket.executionType && (
+          <div>
+            <span className="font-medium text-gray-700">Tipo de ejecución: </span>
+            {ticket.executionType}
+          </div>
+        )}
         {ticket.ticketType === "KUBERNETES" && ticket.codeYaml && (
           <div>
             <span className="font-medium text-gray-700">Código YAML:</span>

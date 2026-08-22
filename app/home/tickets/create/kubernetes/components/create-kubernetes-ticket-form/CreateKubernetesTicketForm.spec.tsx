@@ -65,11 +65,11 @@ describe("CreateKubernetesTicketForm", () => {
     vi.unstubAllGlobals();
   });
 
-  it("shows the YAML textarea (capped at 500 chars) and no DATABASE fields", () => {
+  it("shows the YAML textarea with no character cap and no DATABASE fields", () => {
     render(<CreateKubernetesTicketForm />);
 
     const yamlTextarea = screen.getByLabelText(/código yaml/i);
-    expect(yamlTextarea).toHaveAttribute("maxlength", "500");
+    expect(yamlTextarea).not.toHaveAttribute("maxlength");
     expect(screen.queryByLabelText(/sql/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/base de datos/i)).not.toBeInTheDocument();
   });

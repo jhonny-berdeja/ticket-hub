@@ -187,7 +187,6 @@ export default function CreateAnsibleTicketForm() {
           <textarea
             id="yaml"
             rows={6}
-            maxLength={500}
             value={codeAnsible}
             onChange={(event) => setCodeAnsible(event.target.value)}
             placeholder={"clave: valor\notra_clave: otro_valor"}

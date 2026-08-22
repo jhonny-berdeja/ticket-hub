@@ -234,7 +234,6 @@ export default function CreateKubernetesTicketForm() {
           <textarea
             id="yaml"
             rows={6}
-            maxLength={500}
             value={codeYaml}
             onChange={(event) => setCodeYaml(event.target.value)}
             placeholder={
