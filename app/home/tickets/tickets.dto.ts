@@ -1,5 +1,8 @@
 export type TicketType = "ANSIBLE" | "DATABASE" | "KUBERNETES";
 
+/** How a KUBERNETES ticket's `codeYaml` should be executed by the backend: an Ansible playbook or a raw manifest apply. */
+export type KubernetesExecutionType = "ANSIBLE" | "MANIFEST";
+
 /** Allowlisted DATABASE target — fetched from `GET /tickets/db-targets`, never hardcoded (see infra design's "anti-drift" note). */
 export interface DbTarget {
   namespace: string;

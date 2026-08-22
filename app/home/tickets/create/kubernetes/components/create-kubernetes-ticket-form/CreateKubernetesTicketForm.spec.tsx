@@ -43,6 +43,10 @@ async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
     screen.getByLabelText(/asignar a/i),
     "ana.gomez@example.com",
   );
+  await user.selectOptions(
+    screen.getByLabelText(/tipo de ejecución/i),
+    "MANIFEST",
+  );
   await user.type(screen.getByLabelText(/asunto/i), "Escalar deployment");
   await user.type(
     screen.getByLabelText(/descripción/i),
@@ -110,5 +114,73 @@ describe("CreateKubernetesTicketForm", () => {
     await user.click(screen.getByRole("button", { name: /cancelar/i }));
 
     expect(pushMock).toHaveBeenCalledWith("/home/tickets/list/kubernetes");
+  });
+
+  it("renders \"Tipo de ejecución\" as a static select with Ansible/Manifest options", () => {
+    render(<CreateKubernetesTicketForm />);
+
+    const executionTypeSelect = screen.getByLabelText(/tipo de ejecución/i);
+    expect(executionTypeSelect.tagName).toBe("SELECT");
+    expect(
+      screen.getByRole("option", { name: "Ansible" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "Manifest" }),
+    ).toBeInTheDocument();
+  });
+
+  it("blocks submit with a validation message when no execution type is selected", async () => {
+    const user = userEvent.setup();
+    render(<CreateKubernetesTicketForm />);
+
+    await screen.findByRole("option", {
+      name: /ana gomez \(ana\.gomez@example\.com\)/i,
+    });
+    await user.selectOptions(
+      screen.getByLabelText(/asignar a/i),
+      "ana.gomez@example.com",
+    );
+    await user.type(screen.getByLabelText(/asunto/i), "Escalar deployment");
+    await user.type(
+      screen.getByLabelText(/descripción/i),
+      "El deployment necesita más réplicas",
+    );
+    await user.click(screen.getByRole("button", { name: /crear ticket/i }));
+
+    expect(
+      await screen.findByText(/seleccioná el tipo de ejecución/i),
+    ).toBeInTheDocument();
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("sends the selected executionType in the create payload", async () => {
+    const user = userEvent.setup();
+    const fetchMock = mockTicketsFetch();
+    vi.stubGlobal("fetch", fetchMock);
+    render(<CreateKubernetesTicketForm />);
+
+    await fillAndSubmit(user);
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/tickets/kubernetes",
+        expect.objectContaining({
+          body: expect.stringContaining('"executionType":"MANIFEST"'),
+        }),
+      );
+    });
+  });
+
+  it("swaps the code field's label to \"Playbook Ansible\" when Ansible is selected", async () => {
+    const user = userEvent.setup();
+    render(<CreateKubernetesTicketForm />);
+
+    await user.selectOptions(
+      screen.getByLabelText(/tipo de ejecución/i),
+      "ANSIBLE",
+    );
+
+    expect(screen.getByLabelText(/playbook ansible/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^código yaml$/i)).not.toBeInTheDocument();
   });
 });
