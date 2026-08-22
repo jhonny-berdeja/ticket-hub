@@ -133,7 +133,7 @@ export default function TicketDetailPage({ params }: TicketDetailPageProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6">
+      <div className="w-full rounded-2xl border border-gray-200 bg-white p-6">
         <TicketDetail key={number} ticket={ticket} />
       </div>
     </div>
